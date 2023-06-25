@@ -1,0 +1,25 @@
+version: '3'
+services:
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "9042:9042"
+      - "5433:5432"
+    volumes:
+      - ./postgres:/docker-entrypoint-initdb.d
+
+  chatapi:
+    image: chatapi-image
+    container_name: chatapi
+    ports:
+      - 8080:8080
+    depends_on:
+      - postgres
+    env_file:
+      .env
+
