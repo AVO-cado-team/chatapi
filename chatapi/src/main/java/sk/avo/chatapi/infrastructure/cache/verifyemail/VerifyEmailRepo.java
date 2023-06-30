@@ -45,7 +45,7 @@ public class VerifyEmailRepo implements IVerifyEmailRepo {
         return false;
     }
 
-    public boolean regenerateCode(String email) {
+    public boolean generateCode(String email) {
         for (Email emailObj : this.emailCache) {
             if (emailObj.getEmail().equals(email)) {
                 emailObj.generateCode();

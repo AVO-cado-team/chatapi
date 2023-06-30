@@ -11,5 +11,5 @@ public class BaseUser {
     @Getter
     private String username;
     @Getter
-    private String isVerified;
+    private Boolean isVerified;
 }

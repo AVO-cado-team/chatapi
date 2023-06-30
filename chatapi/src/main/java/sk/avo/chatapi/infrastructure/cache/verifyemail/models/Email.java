@@ -26,5 +26,6 @@ public class Email {
     public void generateCode() {
         this.logger.warn("Generating code for email: " + this.email);
         this.code = RandomCode.generateCode(CODE_LENGTH);
+        this.logger.warn("Generated code: " + this.code);
     }
 }

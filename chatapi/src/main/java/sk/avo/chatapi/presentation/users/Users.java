@@ -7,8 +7,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import sk.avo.chatapi.application.ApplicationService;
 import sk.avo.chatapi.domain.user.exceptions.UserAlreadyExistsException;
-import sk.avo.chatapi.presentation.users.dto.NewUser;
-import sk.avo.chatapi.presentation.users.dto.SignupRequest;
+import sk.avo.chatapi.domain.user.exceptions.UserEmailVerifyException;
+import sk.avo.chatapi.domain.user.exceptions.UserIsNotVerifiedException;
+import sk.avo.chatapi.domain.user.exceptions.UserNotFoundException;
+import sk.avo.chatapi.domain.user.models.UserModel;
+import sk.avo.chatapi.presentation.users.dto.*;
 
 @RestController("/api/users")
 public class Users {
@@ -21,8 +24,9 @@ public class Users {
 
     @PostMapping("/signup")
     public ResponseEntity<NewUser> signup(@RequestBody SignupRequest signupRequest) {
+        UserModel userModel;
         try {
-            applicationService.signup(
+            userModel = applicationService.signup(
                     signupRequest.getUsername(),
                     signupRequest.getPassword(),
                     signupRequest.getEmail()
@@ -31,6 +35,59 @@ public class Users {
             return ResponseEntity.badRequest().build();
         }
 
-        return ResponseEntity.created(null).build();
+        return ResponseEntity.created(null).body(
+                new NewUser(
+                        userModel.getId(),
+                        userModel.getUsername(),
+                        userModel.getIsVerified()
+                )
+        );
+    }
+
+    @PostMapping("/email/verify")
+    public ResponseEntity<BaseUser> verifyEmail(@RequestBody VerifyEmailRequest signupRequest) {
+        UserModel userModel;
+        try {
+            userModel = applicationService.verifyEmail(
+                    signupRequest.getEmail(),
+                    signupRequest.getCode()
+            );
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (UserEmailVerifyException e) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok(
+                new BaseUser(
+                        userModel.getId(),
+                        userModel.getUsername(),
+                        userModel.getIsVerified()
+                )
+        );
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginUser> login(@RequestBody LoginRequest loginRequest) {
+        UserModel userModel;
+        try {
+            userModel = applicationService.login(
+                    loginRequest.getUsername(),
+                    loginRequest.getPassword()
+            );
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (UserIsNotVerifiedException e) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok(
+                new LoginUser(
+                        userModel.getId(),
+                        userModel.getUsername(),
+                        userModel.getIsVerified(),
+                        userModel.getCreatedAt()
+                )
+        );
     }
 }

@@ -47,6 +47,7 @@ public class UserService {
         user.setCreatedAt(java.time.LocalDateTime.now());
 
         verifyEmailRepo.addEmail(user.getEmail());
+        verifyEmailRepo.generateCode(user.getEmail());
         user = userRepo.save(user);
         return user;
     }
