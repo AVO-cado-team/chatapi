@@ -54,4 +54,14 @@ public class VerifyEmailRepo implements IVerifyEmailRepo {
         }
         return false;
     }
+
+    @Override
+    public boolean emailExists(String email) {
+        for (Email emailObj : this.emailCache) {
+            if (emailObj.getEmail().equals(email)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

@@ -2,10 +2,7 @@ package sk.avo.chatapi.application;
 
 import org.springframework.stereotype.Service;
 import sk.avo.chatapi.domain.user.UserService;
-import sk.avo.chatapi.domain.user.exceptions.UserAlreadyExistsException;
-import sk.avo.chatapi.domain.user.exceptions.UserEmailVerifyException;
-import sk.avo.chatapi.domain.user.exceptions.UserIsNotVerifiedException;
-import sk.avo.chatapi.domain.user.exceptions.UserNotFoundException;
+import sk.avo.chatapi.domain.user.exceptions.*;
 import sk.avo.chatapi.domain.user.models.UserModel;
 
 
@@ -31,5 +28,9 @@ public class ApplicationService {
 
     public UserModel login(String username, String password) throws UserNotFoundException, UserIsNotVerifiedException {
         return userService.getUserByUsernameAndPassword(username, password);
+    }
+
+    public UserModel regenerateEmailVerificationCode(String email) throws UserNotFoundException, UserEmailIsAlreadyVerifiedException {
+        return userService.regenerateEmailVerificationCode(email);
     }
 }

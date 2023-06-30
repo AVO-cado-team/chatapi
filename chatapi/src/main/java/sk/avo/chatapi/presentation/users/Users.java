@@ -6,10 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import sk.avo.chatapi.application.ApplicationService;
-import sk.avo.chatapi.domain.user.exceptions.UserAlreadyExistsException;
-import sk.avo.chatapi.domain.user.exceptions.UserEmailVerifyException;
-import sk.avo.chatapi.domain.user.exceptions.UserIsNotVerifiedException;
-import sk.avo.chatapi.domain.user.exceptions.UserNotFoundException;
+import sk.avo.chatapi.domain.user.exceptions.*;
 import sk.avo.chatapi.domain.user.models.UserModel;
 import sk.avo.chatapi.presentation.users.dto.*;
 
@@ -37,6 +34,29 @@ public class Users {
 
         return ResponseEntity.created(null).body(
                 new NewUser(
+                        userModel.getId(),
+                        userModel.getUsername(),
+                        userModel.getIsVerified()
+                )
+        );
+    }
+
+    @PostMapping("/email/resend")
+    public ResponseEntity<ResendEmail> resendEmail(@RequestBody ResendEmailRequest resendEmailRequest) {
+        UserModel userModel;
+        try {
+            userModel = applicationService.regenerateEmailVerificationCode(
+                    resendEmailRequest.getEmail()
+            );
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (UserEmailIsAlreadyVerifiedException e) {
+            return ResponseEntity.badRequest().build();
+        }
+
+
+        return ResponseEntity.ok(
+                new ResendEmail(
                         userModel.getId(),
                         userModel.getUsername(),
                         userModel.getIsVerified()

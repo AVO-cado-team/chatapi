@@ -12,6 +12,7 @@ import sk.avo.chatapi.domain.user.exceptions.UserAlreadyExistsException;
 import sk.avo.chatapi.domain.user.exceptions.UserNotFoundException;
 import sk.avo.chatapi.domain.user.exceptions.UserEmailVerifyException;
 import sk.avo.chatapi.domain.user.exceptions.UserIsNotVerifiedException;
+import sk.avo.chatapi.domain.user.exceptions.UserEmailIsAlreadyVerifiedException;
 
 
 import java.util.Optional;
@@ -78,6 +79,21 @@ public class UserService {
         if (!user.get().getIsVerified()) {
             throw new UserIsNotVerifiedException();
         }
+        return user.get();
+    }
+
+    public UserModel regenerateEmailVerificationCode(String email) throws UserNotFoundException, UserEmailIsAlreadyVerifiedException {
+        Optional<UserModel> user = userRepo.findByEmail(email);
+        if (user.isEmpty()) {
+            throw new UserNotFoundException();
+        }
+        if (user.get().getIsVerified()) {
+            throw new UserEmailIsAlreadyVerifiedException();
+        }
+        if (!verifyEmailRepo.emailExists(email)) {
+            verifyEmailRepo.addEmail(email);
+        }
+        verifyEmailRepo.generateCode(email);
         return user.get();
     }
 }
