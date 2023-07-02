@@ -3,6 +3,10 @@ package sk.avo.chatapi.config;
 import lombok.Getter;
 import java.util.Properties;
 
+import org.springframework.context.annotation.Configuration;
+
+
+@Configuration
 public class Application {
     @Getter
     private String version;
@@ -24,4 +28,6 @@ public class Application {
             gitCommitSha = "unknown";
         }
     }
+
+
 }

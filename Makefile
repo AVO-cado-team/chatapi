@@ -12,6 +12,7 @@ OK 		= $(ccok)[OK]   |$(ccreset)
 
 DOCKER_COMPOSE_ARGS = -f ./ci/build/docker-compose.yml
 APP_DOCKER_FILE = ./ci/build/Dockerfile
+APP_DEV_DOCKER_FILE = ./ci/build/dev.Dockerfile
 APP_DOTENV_FILE = ./ci/build/.env
 APP_DEFAULT_DOTENV_FILE = ./ci/build/.default.env
 APP_VERSION = 0.0.1
@@ -71,6 +72,12 @@ build-app: .create-build-info-properties
 	@echo "${INFO} Building app"
 	@docker build -t $(APP_DOCKER_IMAGE) -f $(APP_DOCKER_FILE) .
 
+dev-build-app: .create-build-info-properties
+	@echo "${INFO} Building app for development"
+	@chmod +x ./chatapi/gradlew
+	@./chatapi/gradlew clean build -p ./chatapi
+	@docker build -t $(APP_DOCKER_IMAGE) -f $(APP_DEV_DOCKER_FILE) .
+
 up-app: .wait-for-db
 	@echo "${INFO} Starting app"
 	@docker-compose $(DOCKER_COMPOSE_ARGS) up -d $(APP_DOCKER_CONTAINER)
@@ -85,3 +92,4 @@ logs-app:
 
 up: .exists-check .up-db build-app up-app logs-app
 stop: stop-app .stop-db
+dev-up: .exists-check .up-db dev-build-app up-app logs-app
