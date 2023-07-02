@@ -1,16 +1,21 @@
 package sk.avo.chatapi.presentation.users;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+//import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+//import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import sk.avo.chatapi.application.ApplicationService;
+import sk.avo.chatapi.application.dto.TokenPair;
 import sk.avo.chatapi.domain.user.exceptions.*;
 import sk.avo.chatapi.domain.user.models.UserModel;
 import sk.avo.chatapi.presentation.users.dto.*;
 
-@RestController("/api/users")
+@RestController("") // /api/users
 public class Users {
     private final ApplicationService applicationService;
 
@@ -88,10 +93,10 @@ public class Users {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginUser> login(@RequestBody LoginRequest loginRequest) {
-        UserModel userModel;
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest){
+        TokenPair tokenPair;
         try {
-            userModel = applicationService.login(
+            tokenPair = applicationService.login(
                     loginRequest.getUsername(),
                     loginRequest.getPassword()
             );
@@ -100,14 +105,12 @@ public class Users {
         } catch (UserIsNotVerifiedException e) {
             return ResponseEntity.badRequest().build();
         }
-
         return ResponseEntity.ok(
-                new LoginUser(
-                        userModel.getId(),
-                        userModel.getUsername(),
-                        userModel.getIsVerified(),
-                        userModel.getCreatedAt()
-                )
+                new LoginResponse(
+                tokenPair.getAccessToken(),
+                tokenPair.getRefreshToken(),
+                tokenPair.getExpiresIn()
+            )
         );
     }
 }

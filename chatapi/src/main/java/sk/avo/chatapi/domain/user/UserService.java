@@ -82,6 +82,24 @@ public class UserService {
         return user.get();
     }
 
+    @Transactional // Get user by username
+    public UserModel getUserByUsername(String username) throws UserNotFoundException {
+        Optional<UserModel> user = userRepo.findByUsername(username);
+        if (user.isEmpty()) {
+            throw new UserNotFoundException();
+        }
+        return user.get();
+    }
+
+    @Transactional // Get user by id
+    public UserModel getUserById(Long id) throws UserNotFoundException {
+        Optional<UserModel> user = userRepo.findById(id);
+        if (user.isEmpty()) {
+            throw new UserNotFoundException();
+        }
+        return user.get();
+    }
+
     public UserModel regenerateEmailVerificationCode(String email) throws UserNotFoundException, UserEmailIsAlreadyVerifiedException {
         Optional<UserModel> user = userRepo.findByEmail(email);
         if (user.isEmpty()) {
