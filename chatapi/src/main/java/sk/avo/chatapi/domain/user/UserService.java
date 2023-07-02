@@ -1,7 +1,5 @@
 package sk.avo.chatapi.domain.user;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,7 +21,6 @@ public class UserService {
     private final IUserRepo userRepo;
     private final IVerifyEmailRepo verifyEmailRepo;
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     @Autowired
     public UserService(IUserRepo userRepo, IVerifyEmailRepo verifyEmailRepo) {
@@ -38,11 +35,11 @@ public class UserService {
             String email
     ) throws UserAlreadyExistsException {
         if (
-                (userRepo.findByUsername(username).isPresent() | userRepo.findByEmail(email).isPresent()
-                ) & userRepo.findByEmail(email).get().getIsVerified()) {
+                (userRepo.findByUsername(username).isPresent() || userRepo.findByEmail(email).isPresent()
+                ) && userRepo.findByEmail(email).get().getIsVerified()) {
             throw new UserAlreadyExistsException();
         }
-        if (userRepo.findByEmail(email).isPresent() & !userRepo.findByEmail(email).get().getIsVerified()) {
+        if (userRepo.findByEmail(email).isPresent() && !userRepo.findByEmail(email).get().getIsVerified()) {
             userRepo.delete(userRepo.findByEmail(email).get());
             userRepo.flush();
         }
