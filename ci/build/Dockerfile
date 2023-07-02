@@ -9,4 +9,5 @@ COPY chatapi /chatapi
 RUN gradle build
 
 # Run the project
-CMD ["gradle", "bootRun"]
+#CMD ["gradle", "bootRun"]
+CMD ["java", "-jar", "build/libs/chatapi-0.0.1-SNAPSHOT.jar"]

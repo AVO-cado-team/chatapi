@@ -3,19 +3,19 @@ package sk.avo.chatapi.presentation.users;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-//import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-//import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 import sk.avo.chatapi.application.ApplicationService;
 import sk.avo.chatapi.application.dto.TokenPair;
+import sk.avo.chatapi.domain.security.exceptions.InvalidToken;
 import sk.avo.chatapi.domain.user.exceptions.*;
 import sk.avo.chatapi.domain.user.models.UserModel;
 import sk.avo.chatapi.presentation.users.dto.*;
 
-@RestController("") // /api/users
+@RestController("/api/")
 public class Users {
     private final ApplicationService applicationService;
 
@@ -25,10 +25,10 @@ public class Users {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<NewUser> signup(@RequestBody SignupRequest signupRequest) {
-        UserModel userModel;
+    public ResponseEntity<SignupResponse> signup(@RequestBody SignupRequest signupRequest) {
+        TokenPair tokenPair;
         try {
-            userModel = applicationService.signup(
+            tokenPair = applicationService.signup(
                     signupRequest.getUsername(),
                     signupRequest.getPassword(),
                     signupRequest.getEmail()
@@ -38,20 +38,39 @@ public class Users {
         }
 
         return ResponseEntity.created(null).body(
-                new NewUser(
-                        userModel.getId(),
-                        userModel.getUsername(),
-                        userModel.getIsVerified()
+                new SignupResponse(
+                    tokenPair.getAccessToken(),
+                    tokenPair.getRefreshToken()
                 )
         );
     }
 
-    @PostMapping("/email/resend")
-    public ResponseEntity<ResendEmail> resendEmail(@RequestBody ResendEmailRequest resendEmailRequest) {
-        UserModel userModel;
+    @PostMapping("/email/verify")
+    public ResponseEntity<String> verifyEmail(@RequestBody VerifyEmailRequest verifyEmailRequest) {
+        try {
+            applicationService.verifyEmail(
+                    verifyEmailRequest.getEmail(),
+                    verifyEmailRequest.getCode()
+            );
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (UserEmailVerifyException e) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok("{}");
+    }
+
+    @PostMapping("/email/resend-code")
+    public ResponseEntity<ResendEmailResponse> resendEmail(
+            Authentication authentication
+    ) {
+        UserModel userModel = (UserModel) authentication.getPrincipal();
+        if (userModel == null) return ResponseEntity.badRequest().build();
+
         try {
             userModel = applicationService.regenerateEmailVerificationCode(
-                    resendEmailRequest.getEmail()
+                    userModel.getEmail()
             );
         } catch (UserNotFoundException e) {
             return ResponseEntity.notFound().build();
@@ -61,34 +80,7 @@ public class Users {
 
 
         return ResponseEntity.ok(
-                new ResendEmail(
-                        userModel.getId(),
-                        userModel.getUsername(),
-                        userModel.getIsVerified()
-                )
-        );
-    }
-
-    @PostMapping("/email/verify")
-    public ResponseEntity<BaseUser> verifyEmail(@RequestBody VerifyEmailRequest signupRequest) {
-        UserModel userModel;
-        try {
-            userModel = applicationService.verifyEmail(
-                    signupRequest.getEmail(),
-                    signupRequest.getCode()
-            );
-        } catch (UserNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        } catch (UserEmailVerifyException e) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        return ResponseEntity.ok(
-                new BaseUser(
-                        userModel.getId(),
-                        userModel.getUsername(),
-                        userModel.getIsVerified()
-                )
+                new ResendEmailResponse()
         );
     }
 
@@ -108,9 +100,41 @@ public class Users {
         return ResponseEntity.ok(
                 new LoginResponse(
                 tokenPair.getAccessToken(),
-                tokenPair.getRefreshToken(),
-                tokenPair.getExpiresIn()
+                tokenPair.getRefreshToken()
             )
         );
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<RefreshResponse> refresh(@RequestBody RefreshRequest refreshRequest){
+        TokenPair tokenPair;
+        try {
+            tokenPair = applicationService.refresh(
+                    refreshRequest.getRefreshToken()
+            );
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (InvalidToken e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok(
+                new RefreshResponse(
+                        tokenPair.getAccessToken(),
+                        tokenPair.getRefreshToken()
+                )
+        );
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<MeResponse> me(Authentication authentication) {
+        UserModel userModel = (UserModel) authentication.getPrincipal();
+        if (userModel == null) return ResponseEntity.badRequest().build();
+        MeResponse meResponse = new MeResponse();
+        meResponse.setId(userModel.getId());
+        meResponse.setUsername(userModel.getUsername());
+        meResponse.setIsVerified(userModel.getIsVerified());
+        meResponse.setEmail(userModel.getEmail());
+        meResponse.setPasswordHash(userModel.getPasswordHash());
+        return ResponseEntity.ok(meResponse);
     }
 }

@@ -19,7 +19,8 @@ import java.time.Instant;
 
 @Service
 public class JwtTokenService {
-    private static final Duration JWT_TOKEN_VALIDITY = Duration.ofMinutes(20);
+    private static final Duration JWT_ACCESS_TOKEN_VALIDITY = Duration.ofMinutes(20);
+    private static final Duration JWT_REFRESH_TOKEN_VALIDITY = Duration.ofDays(30);
     private static final Logger logger = LoggerFactory.getLogger(JwtTokenService.class);
     private final Algorithm hmac512;
     private final JWTVerifier verifier;
@@ -35,7 +36,7 @@ public class JwtTokenService {
                 .withSubject(userId.toString() + ":access")
                 .withIssuer("app")
                 .withIssuedAt(now)
-                .withExpiresAt(now.plusMillis(JWT_TOKEN_VALIDITY.toMillis()))
+                .withExpiresAt(now.plusMillis(JWT_ACCESS_TOKEN_VALIDITY.toMillis()))
                 .sign(this.hmac512);
     }
 
@@ -45,7 +46,7 @@ public class JwtTokenService {
                 .withSubject(userId.toString() + ":refresh")
                 .withIssuer("app")
                 .withIssuedAt(now)
-                .withExpiresAt(now.plusMillis(JWT_TOKEN_VALIDITY.toMillis()))
+                .withExpiresAt(now.plusMillis(JWT_REFRESH_TOKEN_VALIDITY.toMillis()))
                 .sign(this.hmac512);
     }
     public Tuple<Long, String> validateTokenAndGetUserIdAndTokenType(final String token) throws InvalidToken {
@@ -62,4 +63,10 @@ public class JwtTokenService {
         }
     }
 
+    public Duration getJwtAccessTokenValidity() {
+        return JWT_ACCESS_TOKEN_VALIDITY;
+    }
+    public Duration getJwtRefreshTokenValidity() {
+        return JWT_REFRESH_TOKEN_VALIDITY;
+    }
 }

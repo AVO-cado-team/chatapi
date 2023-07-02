@@ -2,7 +2,6 @@ package sk.avo.chatapi.config;
 
 import lombok.Getter;
 import java.util.Properties;
-
 import org.springframework.context.annotation.Configuration;
 
 

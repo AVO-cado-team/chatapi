@@ -22,8 +22,8 @@ import java.util.Optional;
 public class UserService {
     private final IUserRepo userRepo;
     private final IVerifyEmailRepo verifyEmailRepo;
-    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     @Autowired
     public UserService(IUserRepo userRepo, IVerifyEmailRepo verifyEmailRepo) {
@@ -37,8 +37,14 @@ public class UserService {
             String password,
             String email
     ) throws UserAlreadyExistsException {
-        if (userRepo.findByUsername(username).isPresent() | userRepo.findByEmail(email).isPresent()) {
+        if (
+                (userRepo.findByUsername(username).isPresent() | userRepo.findByEmail(email).isPresent()
+                ) & userRepo.findByEmail(email).get().getIsVerified()) {
             throw new UserAlreadyExistsException();
+        }
+        if (userRepo.findByEmail(email).isPresent() & !userRepo.findByEmail(email).get().getIsVerified()) {
+            userRepo.delete(userRepo.findByEmail(email).get());
+            userRepo.flush();
         }
         UserModel user = new UserModel();
         user.setUsername(username);
@@ -82,7 +88,7 @@ public class UserService {
         return user.get();
     }
 
-    @Transactional // Get user by username
+    @Transactional
     public UserModel getUserByUsername(String username) throws UserNotFoundException {
         Optional<UserModel> user = userRepo.findByUsername(username);
         if (user.isEmpty()) {
@@ -91,7 +97,7 @@ public class UserService {
         return user.get();
     }
 
-    @Transactional // Get user by id
+    @Transactional
     public UserModel getUserById(Long id) throws UserNotFoundException {
         Optional<UserModel> user = userRepo.findById(id);
         if (user.isEmpty()) {

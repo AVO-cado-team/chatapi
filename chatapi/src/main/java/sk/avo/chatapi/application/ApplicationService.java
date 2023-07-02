@@ -1,12 +1,9 @@
 package sk.avo.chatapi.application;
 
-import org.springframework.http.HttpStatus;
-//import org.springframework.security.authentication.BadCredentialsException;
-//import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-//import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 import sk.avo.chatapi.domain.security.JwtTokenService;
+import sk.avo.chatapi.domain.security.dto.Tuple;
+import sk.avo.chatapi.domain.security.exceptions.InvalidToken;
 import sk.avo.chatapi.domain.user.UserService;
 import sk.avo.chatapi.domain.user.exceptions.*;
 import sk.avo.chatapi.domain.user.models.*;
@@ -25,12 +22,16 @@ public class ApplicationService {
         this.jwtTokenService = jwtTokenService;
     }
 
-    public UserModel signup(
+    public TokenPair signup(
             String username,
             String password,
             String email
     ) throws UserAlreadyExistsException {
-        return userService.createUser(username, password, email);
+        UserModel userModel = userService.createUser(username, password, email);
+        TokenPair tokenPair = new TokenPair();
+        tokenPair.setAccessToken(jwtTokenService.generateAccessToken(userModel.getId()));
+        tokenPair.setRefreshToken(jwtTokenService.generateRefreshToken(userModel.getId()));
+        return tokenPair;
     }
 
     public UserModel verifyEmail(String email, String code) throws UserNotFoundException, UserEmailVerifyException {
@@ -46,7 +47,17 @@ public class ApplicationService {
         final TokenPair tokenPair = new TokenPair();
         tokenPair.setAccessToken(jwtTokenService.generateAccessToken(user.getId()));
         tokenPair.setRefreshToken(jwtTokenService.generateRefreshToken(user.getId()));
-        tokenPair.setExpiresIn(ACCESS_TOKEN_EXPIRATION);
+        return tokenPair;
+    }
+
+    public TokenPair refresh(String refreshToken) throws InvalidToken, UserNotFoundException {
+        final Tuple<Long, String> tokenPayload = jwtTokenService.validateTokenAndGetUserIdAndTokenType(refreshToken);
+        if (!tokenPayload.getSecond().equals("refresh")) {
+            throw new InvalidToken();
+        }
+        final TokenPair tokenPair = new TokenPair();
+        tokenPair.setAccessToken(jwtTokenService.generateAccessToken(tokenPayload.getFirst()));
+        tokenPair.setRefreshToken(jwtTokenService.generateRefreshToken(tokenPayload.getFirst()));
         return tokenPair;
     }
 }

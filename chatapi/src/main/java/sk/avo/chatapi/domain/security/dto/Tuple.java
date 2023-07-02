@@ -9,6 +9,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class Tuple<X, Y> {
-    public final X first;
-    public final Y second;
+    private final X first;
+    private final Y second;
 }
