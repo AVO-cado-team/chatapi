@@ -16,7 +16,7 @@ public class UserModel {
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Getter
-    private Integer id;
+    private Long id;
 
     @Column(unique = true, name = "username")
     @Size(min = 3, max = 50)

@@ -1,6 +1,5 @@
-package sk.avo.chatapi.presentation.exceptions.dto;
+package sk.avo.chatapi.presentation.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 

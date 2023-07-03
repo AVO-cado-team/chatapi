@@ -1,10 +1,10 @@
-package sk.avo.chatapi.presentation.exceptions;
+package sk.avo.chatapi.presentation.exceptionsresolver;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.NoHandlerFoundException;
-import sk.avo.chatapi.presentation.exceptions.dto.ErrorResponse;
+import sk.avo.chatapi.presentation.dto.ErrorResponse;
 
 @RestControllerAdvice
 public class ErrorResolver {
