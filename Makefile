@@ -19,7 +19,7 @@ APP_VERSION = 0.0.1
 APP_DOCKER_IMAGE = chatapi-image
 APP_DOCKER_CONTAINER = chatapi
 APP_BUILD_INFO_PROPERTIES = ./chatapi/src/main/resources/build-info.properties
-DB_DOCER_CONTAINER = postgres
+DB_DOCKER_CONTAINER = postgres
 DB_EXTERNAL_PORT = 5433
 
 # Variables for create-build-info-properties
@@ -62,11 +62,11 @@ new_eq_old_commit_sha = $(shell [ "$(old_commit_sha)" = "$(new_commit_sha)" ] &&
 
 .up-db:
 	@echo "${INFO} Starting database"
-	@docker-compose $(DOCKER_COMPOSE_ARGS) up -d $(DB_DOCER_CONTAINER)
+	@docker-compose $(DOCKER_COMPOSE_ARGS) up -d $(DB_DOCKER_CONTAINER)
 
 .stop-db:
 	@echo "${INFO} Stopping database"
-	@docker-compose $(DOCKER_COMPOSE_ARGS) stop $(DB_DOCER_CONTAINER)
+	@docker-compose $(DOCKER_COMPOSE_ARGS) stop $(DB_DOCKER_CONTAINER)
 
 build-app: .create-build-info-properties
 	@echo "${INFO} Building app"
