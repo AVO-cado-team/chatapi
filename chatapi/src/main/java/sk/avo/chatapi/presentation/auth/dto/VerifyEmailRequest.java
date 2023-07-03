@@ -1,4 +1,4 @@
-package sk.avo.chatapi.presentation.users.dto;
+package sk.avo.chatapi.presentation.auth.dto;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -6,6 +6,5 @@ import lombok.Setter;
 @Getter
 @Setter
 public class VerifyEmailRequest {
-    private String email;
     private String code;
 }
