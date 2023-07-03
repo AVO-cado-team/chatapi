@@ -1,4 +1,4 @@
-package sk.avo.chatapi.presentation.users;
+package sk.avo.chatapi.presentation.auth;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,15 +10,15 @@ import sk.avo.chatapi.application.dto.TokenPair;
 import sk.avo.chatapi.domain.security.exceptions.InvalidToken;
 import sk.avo.chatapi.domain.user.exceptions.*;
 import sk.avo.chatapi.domain.user.models.UserModel;
-import sk.avo.chatapi.presentation.users.dto.*;
+import sk.avo.chatapi.presentation.auth.dto.*;
 
 @RestController
-@RequestMapping("/api/")
-public class Users {
+@RequestMapping("/api/auth/")
+public class Auth {
     private final ApplicationService applicationService;
 
     @Autowired
-    public Users(ApplicationService applicationService) {
+    public Auth(ApplicationService applicationService) {
         this.applicationService = applicationService;
     }
 
@@ -71,7 +71,7 @@ public class Users {
         if (userModel == null) return ResponseEntity.badRequest().build();
 
         try {
-            userModel = applicationService.regenerateEmailVerificationCode(
+            applicationService.regenerateEmailVerificationCode(
                     userModel.getEmail()
             );
         } catch (UserNotFoundException e) {

@@ -1,50 +1,39 @@
 package sk.avo.chatapi.security;
 
+import java.util.List;
+import org.slf4j.Logger;
+import java.io.IOException;
+import org.slf4j.LoggerFactory;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import org.springframework.http.HttpHeaders;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
-import java.io.IOException;
-import java.util.List;
-
-import sk.avo.chatapi.domain.security.JwtTokenService;
-import sk.avo.chatapi.domain.security.dto.Tuple;
-import sk.avo.chatapi.domain.security.exceptions.InvalidToken;
-import sk.avo.chatapi.domain.user.UserService;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import sk.avo.chatapi.domain.user.exceptions.UserNotFoundException;
+import sk.avo.chatapi.domain.security.exceptions.InvalidToken;
+import org.springframework.web.filter.OncePerRequestFilter;
+import sk.avo.chatapi.application.ApplicationService;
 import sk.avo.chatapi.domain.user.models.UserModel;
+import org.springframework.stereotype.Component;
+import sk.avo.chatapi.domain.security.dto.Tuple;
 import sk.avo.chatapi.security.model.UserRoles;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
-
-    private final JwtTokenService jwtTokenService;
-    private final UserService userService;
+    private final ApplicationService applicationService;
     private static final Logger logger = LoggerFactory.getLogger(JwtRequestFilter.class);
 
-    public JwtRequestFilter(JwtTokenService jwtTokenService, UserService userService) {
-        this.jwtTokenService = jwtTokenService;
-        this.userService = userService;
+    public JwtRequestFilter(ApplicationService applicationService) {
+        this.applicationService = applicationService;
     }
 
     @Override
     protected void doFilterInternal(final HttpServletRequest request, final HttpServletResponse response,
                                     final FilterChain chain) throws ServletException, IOException {
-        logger.info("doFilterInternal");
-        logger.info(request.getRequestURI());
-        logger.info(request.getMethod());
-        logger.info(request.getHeader(HttpHeaders.AUTHORIZATION));
-        logger.info(request.getHeader(HttpHeaders.CONTENT_TYPE));
-
         final String header = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (header == null || !header.startsWith("Bearer ")) {
             chain.doFilter(request, response);
@@ -54,8 +43,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         final String token = header.substring(7);
         final UserModel userModel;
         try {
-            tokenPayloadTuple = jwtTokenService.validateTokenAndGetUserIdAndTokenType(token);
-            userModel = userService.getUserById(tokenPayloadTuple.getFirst());
+            tokenPayloadTuple = applicationService.validateTokenAndGetUserIdAndTokenType(token);
+            userModel = applicationService.getUserById(tokenPayloadTuple.getFirst());
         } catch (final InvalidToken | UserNotFoundException e) {
             logger.info(e.getMessage());
             chain.doFilter(request, response);
@@ -76,5 +65,4 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         chain.doFilter(request, response);
     }
-
 }

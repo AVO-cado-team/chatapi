@@ -1,9 +1,9 @@
 package sk.avo.chatapi.application;
 
-import org.springframework.stereotype.Service;
+import sk.avo.chatapi.domain.security.exceptions.InvalidToken;
 import sk.avo.chatapi.domain.security.JwtTokenService;
 import sk.avo.chatapi.domain.security.dto.Tuple;
-import sk.avo.chatapi.domain.security.exceptions.InvalidToken;
+import org.springframework.stereotype.Service;
 import sk.avo.chatapi.domain.user.UserService;
 import sk.avo.chatapi.domain.user.exceptions.*;
 import sk.avo.chatapi.domain.user.models.*;
@@ -14,7 +14,6 @@ import sk.avo.chatapi.application.dto.*;
 public class ApplicationService {
     private final UserService userService;
     private final JwtTokenService jwtTokenService;
-    private final static Long ACCESS_TOKEN_EXPIRATION = 3600L;
 
 
     public ApplicationService(UserService userService, JwtTokenService jwtTokenService) {
@@ -59,5 +58,13 @@ public class ApplicationService {
         tokenPair.setAccessToken(jwtTokenService.generateAccessToken(tokenPayload.getFirst()));
         tokenPair.setRefreshToken(jwtTokenService.generateRefreshToken(tokenPayload.getFirst()));
         return tokenPair;
+    }
+
+    public Tuple<Long, String> validateTokenAndGetUserIdAndTokenType(final String token) throws InvalidToken {
+        return jwtTokenService.validateTokenAndGetUserIdAndTokenType(token);
+    }
+
+    public UserModel getUserById(Long id) throws UserNotFoundException {
+        return userService.getUserById(id);
     }
 }
