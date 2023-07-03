@@ -10,4 +10,5 @@ public class BuildInfoResponse {
     private String version;
     private String buildTime;
     private String gitCommitSha;
+    private String gitBranch;
 }
