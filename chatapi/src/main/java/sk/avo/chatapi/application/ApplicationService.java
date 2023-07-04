@@ -1,12 +1,12 @@
 package sk.avo.chatapi.application;
 
-import sk.avo.chatapi.domain.model.user.*;
-import sk.avo.chatapi.domain.model.security.InvalidTokenException;
-import sk.avo.chatapi.domain.service.JwtTokenService;
-import sk.avo.chatapi.domain.shared.Tuple;
 import org.springframework.stereotype.Service;
-import sk.avo.chatapi.domain.service.UserService;
 import sk.avo.chatapi.application.dto.*;
+import sk.avo.chatapi.domain.model.security.InvalidTokenException;
+import sk.avo.chatapi.domain.model.user.*;
+import sk.avo.chatapi.domain.service.JwtTokenService;
+import sk.avo.chatapi.domain.service.UserService;
+import sk.avo.chatapi.domain.shared.Tuple;
 
 @Service
 public class ApplicationService {

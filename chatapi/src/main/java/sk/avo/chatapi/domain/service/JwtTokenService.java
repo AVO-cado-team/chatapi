@@ -4,16 +4,15 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import java.time.Duration;
+import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 // import org.springframework.security.core.userdetails.UserDetails;
-import sk.avo.chatapi.domain.shared.Tuple;
 import sk.avo.chatapi.domain.model.security.InvalidTokenException;
-
-import java.time.Duration;
-import java.time.Instant;
+import sk.avo.chatapi.domain.shared.Tuple;
 
 @Service
 public class JwtTokenService {

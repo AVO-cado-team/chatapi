@@ -1,8 +1,8 @@
 package sk.avo.chatapi.infrastructure.cache.verifyemail;
 
+import java.util.ArrayList;
 import org.springframework.stereotype.Repository;
 import sk.avo.chatapi.infrastructure.cache.verifyemail.models.Email;
-import java.util.ArrayList;
 
 @Repository
 public class CacheVerifyEmailRepo implements sk.avo.chatapi.domain.repository.VerifyEmailRepo {

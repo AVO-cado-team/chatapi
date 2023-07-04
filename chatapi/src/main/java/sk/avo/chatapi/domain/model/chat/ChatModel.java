@@ -2,13 +2,12 @@ package sk.avo.chatapi.domain.model.chat;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
+import java.util.Date;
+import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 import sk.avo.chatapi.domain.model.message.BaseMessageModel;
 import sk.avo.chatapi.domain.model.user.UserModel;
-
-import java.util.Date;
-import java.util.Set;
 
 @Entity
 public class ChatModel {

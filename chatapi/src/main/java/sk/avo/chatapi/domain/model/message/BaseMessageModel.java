@@ -1,12 +1,11 @@
 package sk.avo.chatapi.domain.model.message;
 
 import jakarta.persistence.*;
+import java.util.Date;
 import lombok.Getter;
 import lombok.Setter;
 import sk.avo.chatapi.domain.model.chat.ChatModel;
 import sk.avo.chatapi.domain.model.user.UserModel;
-
-import java.util.Date;
 
 @Entity
 @Getter

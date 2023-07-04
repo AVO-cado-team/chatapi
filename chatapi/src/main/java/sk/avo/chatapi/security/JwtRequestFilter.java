@@ -1,26 +1,26 @@
 package sk.avo.chatapi.security;
 
-import java.util.List;
-import org.slf4j.Logger;
-import java.io.IOException;
-import org.slf4j.LoggerFactory;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import org.springframework.http.HttpHeaders;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import sk.avo.chatapi.domain.model.user.UserNotFoundException;
-import sk.avo.chatapi.domain.model.security.InvalidTokenException;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import sk.avo.chatapi.application.ApplicationService;
+import sk.avo.chatapi.domain.model.security.InvalidTokenException;
 import sk.avo.chatapi.domain.model.user.UserModel;
-import org.springframework.stereotype.Component;
-import sk.avo.chatapi.security.model.UserRoles;
+import sk.avo.chatapi.domain.model.user.UserNotFoundException;
 import sk.avo.chatapi.domain.shared.Tuple;
+import sk.avo.chatapi.security.model.UserRoles;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {

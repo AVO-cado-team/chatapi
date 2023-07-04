@@ -1,20 +1,19 @@
 package sk.avo.chatapi.domain.service;
 
-import org.springframework.stereotype.Service;
-import sk.avo.chatapi.domain.model.user.UserModel;
-import sk.avo.chatapi.domain.repository.UserRepo;
-import sk.avo.chatapi.domain.repository.VerifyEmailRepo;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-import sk.avo.chatapi.domain.model.user.UserNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import sk.avo.chatapi.domain.model.user.UserAlreadyExistsException;
+import sk.avo.chatapi.domain.model.user.UserEmailIsAlreadyVerifiedException;
 import sk.avo.chatapi.domain.model.user.UserEmailVerifyException;
 import sk.avo.chatapi.domain.model.user.UserIsNotVerifiedException;
-import sk.avo.chatapi.domain.model.user.UserAlreadyExistsException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import sk.avo.chatapi.domain.model.user.UserEmailIsAlreadyVerifiedException;
-
-import java.util.Optional;
+import sk.avo.chatapi.domain.model.user.UserModel;
+import sk.avo.chatapi.domain.model.user.UserNotFoundException;
+import sk.avo.chatapi.domain.repository.UserRepo;
+import sk.avo.chatapi.domain.repository.VerifyEmailRepo;
 
 @Service
 public class UserService {

@@ -1,7 +1,6 @@
 package sk.avo.chatapi.infrastructure.cache.verifyemail.models;
 
 import lombok.Getter;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sk.avo.chatapi.infrastructure.cache.verifyemail.utils.RandomCode;
