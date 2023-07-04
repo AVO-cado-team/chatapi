@@ -12,43 +12,39 @@ import java.util.Set;
 
 @Entity
 public class ChatModel {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Getter
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Getter
+  private Long id;
 
-    @Size(min = 3, max = 50)
-    @Column(unique = true)
-    @Getter
-    @Setter
-    private String name;
+  @Size(min = 3, max = 50)
+  @Column(unique = true)
+  @Getter
+  @Setter
+  private String name;
 
-    @ManyToOne
-    UserModel owner;
+  @ManyToOne UserModel owner;
 
-    @ManyToMany
-    Set<UserModel> users;
+  @ManyToMany Set<UserModel> users;
 
-    @OneToMany
-    Set<BaseMessageModel> messages;
+  @OneToMany Set<BaseMessageModel> messages;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date createdAt;
+  @Temporal(TemporalType.TIMESTAMP)
+  private Date createdAt;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date updatedAt;
+  @Temporal(TemporalType.TIMESTAMP)
+  private Date updatedAt;
 
-    @PrePersist
-    private void onCreate() {
-        createdAt = new Date();
-        updatedAt = createdAt;
-    }
+  @PrePersist
+  private void onCreate() {
+    createdAt = new Date();
+    updatedAt = createdAt;
+  }
 
-    @PreUpdate
-    private void onUpdate() {
-        updatedAt = new Date();
-    }
-    public ChatModel() {
-    }
+  @PreUpdate
+  private void onUpdate() {
+    updatedAt = new Date();
+  }
 
+  public ChatModel() {}
 }

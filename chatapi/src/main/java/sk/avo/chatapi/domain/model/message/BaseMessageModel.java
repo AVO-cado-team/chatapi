@@ -12,30 +12,27 @@ import java.util.Date;
 @Getter
 @Setter
 public class BaseMessageModel {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Getter
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Getter
+  private Long id;
 
-    @ManyToOne
-    private ChatModel chat;
+  @ManyToOne private ChatModel chat;
 
-    @ManyToOne
-    private UserModel sender;
+  @ManyToOne private UserModel sender;
 
-    private String text;
+  private String text;
 
-    private String content;
+  private String content;
 
-    @Column(length = 32, columnDefinition = "varchar(32) default 'TEXT'")
-    @Enumerated(value = EnumType.STRING)
-    private MessageType type;
+  @Column(length = 32, columnDefinition = "varchar(32) default 'TEXT'")
+  @Enumerated(value = EnumType.STRING)
+  private MessageType type;
 
-    private Date timestamp;
+  private Date timestamp;
 
-    @PrePersist
-    protected void onCreate() {
-        timestamp = new Date();
-    }
-
+  @PrePersist
+  protected void onCreate() {
+    timestamp = new Date();
+  }
 }

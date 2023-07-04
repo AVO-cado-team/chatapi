@@ -1,6 +1,5 @@
 package sk.avo.chatapi.domain.shared;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,6 +8,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class Tuple<X, Y> {
-    private final X first;
-    private final Y second;
+  private final X first;
+  private final Y second;
 }

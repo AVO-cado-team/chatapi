@@ -8,13 +8,13 @@ import sk.avo.chatapi.presentation.exceptionsresolver.dto.ErrorResponse;
 
 @RestControllerAdvice
 public class ErrorResolver {
-    @ExceptionHandler(NoHandlerFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleNoHandlerFound(NoHandlerFoundException e, WebRequest request) {
-        String url = request.getDescription(false);
-        ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setMessage("'" + url + "' not found");
-        errorResponse.setStatusCode(HttpStatus.NOT_FOUND.value());
-        return errorResponse;
-    }
+  @ExceptionHandler(NoHandlerFoundException.class)
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  public ErrorResponse handleNoHandlerFound(NoHandlerFoundException e, WebRequest request) {
+    String url = request.getDescription(false);
+    ErrorResponse errorResponse = new ErrorResponse();
+    errorResponse.setMessage("'" + url + "' not found");
+    errorResponse.setStatusCode(HttpStatus.NOT_FOUND.value());
+    return errorResponse;
+  }
 }

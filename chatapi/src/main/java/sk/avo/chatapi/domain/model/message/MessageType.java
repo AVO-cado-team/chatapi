@@ -1,8 +1,8 @@
 package sk.avo.chatapi.domain.model.message;
 
 public enum MessageType {
-    TEXT,
-    PHOTO,
-    JOIN,
-    LEAVE
+  TEXT,
+  PHOTO,
+  JOIN,
+  LEAVE
 }

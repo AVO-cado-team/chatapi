@@ -24,45 +24,48 @@ import sk.avo.chatapi.domain.shared.Tuple;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
-    private final ApplicationService applicationService;
-    private static final Logger logger = LoggerFactory.getLogger(JwtRequestFilter.class);
+  private final ApplicationService applicationService;
+  private static final Logger logger = LoggerFactory.getLogger(JwtRequestFilter.class);
 
-    public JwtRequestFilter(ApplicationService applicationService) {
-        this.applicationService = applicationService;
-    }
+  public JwtRequestFilter(ApplicationService applicationService) {
+    this.applicationService = applicationService;
+  }
 
-    @Override
-    protected void doFilterInternal(final HttpServletRequest request, final HttpServletResponse response,
-                                    final FilterChain chain) throws ServletException, IOException {
-        final String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (header == null || !header.startsWith("Bearer ")) {
-            chain.doFilter(request, response);
-            return;
-        }
-        Tuple<Long, String> tokenPayloadTuple;
-        final String token = header.substring(7);
-        final UserModel userModel;
-        try {
-            tokenPayloadTuple = applicationService.validateTokenAndGetUserIdAndTokenType(token);
-            userModel = applicationService.getUserById(tokenPayloadTuple.getFirst());
-        } catch (final InvalidTokenException | UserNotFoundException e) {
-            logger.info(e.getMessage());
-            chain.doFilter(request, response);
-            return;
-        }
-        if (!tokenPayloadTuple.getSecond().equals("access")) {
-            logger.info("token is not access");
-            chain.doFilter(request, response);
-            return;
-        }
-        boolean isUserVerified = userModel.getIsVerified();
-        final UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                userModel,
-                null,
-                List.of((GrantedAuthority) () -> isUserVerified ? UserRoles.USER_VERIFIED : UserRoles.USER_UNVERIFIED)
-        );
-        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        chain.doFilter(request, response);
+  @Override
+  protected void doFilterInternal(
+      final HttpServletRequest request, final HttpServletResponse response, final FilterChain chain)
+      throws ServletException, IOException {
+    final String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+    if (header == null || !header.startsWith("Bearer ")) {
+      chain.doFilter(request, response);
+      return;
     }
+    Tuple<Long, String> tokenPayloadTuple;
+    final String token = header.substring(7);
+    final UserModel userModel;
+    try {
+      tokenPayloadTuple = applicationService.validateTokenAndGetUserIdAndTokenType(token);
+      userModel = applicationService.getUserById(tokenPayloadTuple.getFirst());
+    } catch (final InvalidTokenException | UserNotFoundException e) {
+      logger.info(e.getMessage());
+      chain.doFilter(request, response);
+      return;
+    }
+    if (!tokenPayloadTuple.getSecond().equals("access")) {
+      logger.info("token is not access");
+      chain.doFilter(request, response);
+      return;
+    }
+    boolean isUserVerified = userModel.getIsVerified();
+    final UsernamePasswordAuthenticationToken authentication =
+        new UsernamePasswordAuthenticationToken(
+            userModel,
+            null,
+            List.of(
+                (GrantedAuthority)
+                    () -> isUserVerified ? UserRoles.USER_VERIFIED : UserRoles.USER_UNVERIFIED));
+    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+    chain.doFilter(request, response);
+  }
 }
