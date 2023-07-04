@@ -1,9 +1,6 @@
-package sk.avo.chatapi.domain.user.exceptions;
+package sk.avo.chatapi.domain.model.user;
 
 public class UserIsNotVerifiedException extends BaseUserException {
-    public UserIsNotVerifiedException(String message) {
-        super(message);
-    }
     public UserIsNotVerifiedException() {
         super("User is not verified");
     }

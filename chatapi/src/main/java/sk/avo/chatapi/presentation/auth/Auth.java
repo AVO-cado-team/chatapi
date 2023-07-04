@@ -7,9 +7,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import sk.avo.chatapi.application.ApplicationService;
 import sk.avo.chatapi.application.dto.TokenPair;
-import sk.avo.chatapi.domain.security.exceptions.InvalidToken;
-import sk.avo.chatapi.domain.user.exceptions.*;
-import sk.avo.chatapi.domain.user.models.UserModel;
+import sk.avo.chatapi.domain.model.security.InvalidTokenException;
+import sk.avo.chatapi.domain.model.user.*;
 import sk.avo.chatapi.presentation.auth.dto.*;
 
 @RestController
@@ -113,7 +112,7 @@ public class Auth {
             );
         } catch (UserNotFoundException e) {
             return ResponseEntity.notFound().build();
-        } catch (InvalidToken e) {
+        } catch (InvalidTokenException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         return ResponseEntity.ok(

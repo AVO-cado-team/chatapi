@@ -1,16 +1,18 @@
-package sk.avo.chatapi.domain.user;
+package sk.avo.chatapi.domain.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import sk.avo.chatapi.domain.model.user.UserModel;
+import sk.avo.chatapi.domain.repository.UserRepo;
+import sk.avo.chatapi.domain.repository.VerifyEmailRepo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import sk.avo.chatapi.domain.user.models.UserModel;
-import sk.avo.chatapi.domain.user.exceptions.UserAlreadyExistsException;
-import sk.avo.chatapi.domain.user.exceptions.UserNotFoundException;
-import sk.avo.chatapi.domain.user.exceptions.UserEmailVerifyException;
-import sk.avo.chatapi.domain.user.exceptions.UserIsNotVerifiedException;
-import sk.avo.chatapi.domain.user.exceptions.UserEmailIsAlreadyVerifiedException;
+import sk.avo.chatapi.domain.model.user.UserNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import sk.avo.chatapi.domain.model.user.UserEmailVerifyException;
+import sk.avo.chatapi.domain.model.user.UserIsNotVerifiedException;
+import sk.avo.chatapi.domain.model.user.UserAlreadyExistsException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import sk.avo.chatapi.domain.model.user.UserEmailIsAlreadyVerifiedException;
 
 
 import java.util.Optional;
@@ -18,12 +20,12 @@ import java.util.Optional;
 
 @Service
 public class UserService {
-    private final IUserRepo userRepo;
-    private final IVerifyEmailRepo verifyEmailRepo;
+    private final UserRepo userRepo;
+    private final VerifyEmailRepo verifyEmailRepo;
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Autowired
-    public UserService(IUserRepo userRepo, IVerifyEmailRepo verifyEmailRepo) {
+    public UserService(UserRepo userRepo, VerifyEmailRepo verifyEmailRepo) {
         this.userRepo = userRepo;
         this.verifyEmailRepo = verifyEmailRepo;
     }

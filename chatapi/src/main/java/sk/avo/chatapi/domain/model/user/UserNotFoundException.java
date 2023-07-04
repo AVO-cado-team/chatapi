@@ -1,9 +1,6 @@
-package sk.avo.chatapi.domain.user.exceptions;
+package sk.avo.chatapi.domain.model.user;
 
 public class UserNotFoundException extends BaseUserException{
-    public UserNotFoundException(String message) {
-        super(message);
-    }
     public UserNotFoundException() {
         super("User not found");
     }

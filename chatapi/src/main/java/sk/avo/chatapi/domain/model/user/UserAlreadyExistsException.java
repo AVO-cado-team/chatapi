@@ -1,9 +1,6 @@
-package sk.avo.chatapi.domain.user.exceptions;
+package sk.avo.chatapi.domain.model.user;
 
 public class UserAlreadyExistsException extends BaseUserException {
-    public UserAlreadyExistsException(String message) {
-        super(message);
-    }
     public UserAlreadyExistsException() {
         super("User already exists");
     }

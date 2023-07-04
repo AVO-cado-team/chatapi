@@ -1,12 +1,11 @@
 package sk.avo.chatapi.application;
 
-import sk.avo.chatapi.domain.security.exceptions.InvalidToken;
-import sk.avo.chatapi.domain.security.JwtTokenService;
-import sk.avo.chatapi.domain.security.dto.Tuple;
+import sk.avo.chatapi.domain.model.user.*;
+import sk.avo.chatapi.domain.model.security.InvalidTokenException;
+import sk.avo.chatapi.domain.service.JwtTokenService;
+import sk.avo.chatapi.domain.shared.Tuple;
 import org.springframework.stereotype.Service;
-import sk.avo.chatapi.domain.user.UserService;
-import sk.avo.chatapi.domain.user.exceptions.*;
-import sk.avo.chatapi.domain.user.models.*;
+import sk.avo.chatapi.domain.service.UserService;
 import sk.avo.chatapi.application.dto.*;
 
 
@@ -49,10 +48,10 @@ public class ApplicationService {
         return tokenPair;
     }
 
-    public TokenPair refresh(String refreshToken) throws InvalidToken, UserNotFoundException {
+    public TokenPair refresh(String refreshToken) throws InvalidTokenException, UserNotFoundException {
         final Tuple<Long, String> tokenPayload = jwtTokenService.validateTokenAndGetUserIdAndTokenType(refreshToken);
         if (!tokenPayload.getSecond().equals("refresh")) {
-            throw new InvalidToken();
+            throw new InvalidTokenException();
         }
         final TokenPair tokenPair = new TokenPair();
         tokenPair.setAccessToken(jwtTokenService.generateAccessToken(tokenPayload.getFirst()));
@@ -60,7 +59,7 @@ public class ApplicationService {
         return tokenPair;
     }
 
-    public Tuple<Long, String> validateTokenAndGetUserIdAndTokenType(final String token) throws InvalidToken {
+    public Tuple<Long, String> validateTokenAndGetUserIdAndTokenType(final String token) throws InvalidTokenException {
         return jwtTokenService.validateTokenAndGetUserIdAndTokenType(token);
     }
 

@@ -1,4 +1,4 @@
-package sk.avo.chatapi.domain.user.exceptions;
+package sk.avo.chatapi.domain.model.user;
 
 public class BaseUserException extends Exception {
     public BaseUserException() {

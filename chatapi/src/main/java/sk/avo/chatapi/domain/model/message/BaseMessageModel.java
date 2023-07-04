@@ -1,10 +1,10 @@
-package sk.avo.chatapi.domain.message.models;
+package sk.avo.chatapi.domain.model.message;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import sk.avo.chatapi.domain.chat.models.ChatModel;
-import sk.avo.chatapi.domain.user.models.UserModel;
+import sk.avo.chatapi.domain.model.chat.ChatModel;
+import sk.avo.chatapi.domain.model.user.UserModel;
 
 import java.util.Date;
 
@@ -12,7 +12,6 @@ import java.util.Date;
 @Getter
 @Setter
 public class BaseMessageModel {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Getter

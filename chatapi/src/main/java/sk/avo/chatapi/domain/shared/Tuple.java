@@ -1,4 +1,4 @@
-package sk.avo.chatapi.domain.security.dto;
+package sk.avo.chatapi.domain.shared;
 
 
 import lombok.AllArgsConstructor;

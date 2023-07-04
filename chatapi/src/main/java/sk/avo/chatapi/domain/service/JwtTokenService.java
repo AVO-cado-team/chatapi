@@ -1,4 +1,4 @@
-package sk.avo.chatapi.domain.security;
+package sk.avo.chatapi.domain.service;
 
 
 import com.auth0.jwt.JWT;
@@ -10,8 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 //import org.springframework.security.core.userdetails.UserDetails;
-import sk.avo.chatapi.domain.security.dto.Tuple;
-import sk.avo.chatapi.domain.security.exceptions.InvalidToken;
+import sk.avo.chatapi.domain.shared.Tuple;
+import sk.avo.chatapi.domain.model.security.InvalidTokenException;
 
 
 import java.time.Duration;
@@ -49,17 +49,17 @@ public class JwtTokenService {
                 .withExpiresAt(now.plusMillis(JWT_REFRESH_TOKEN_VALIDITY.toMillis()))
                 .sign(this.hmac512);
     }
-    public Tuple<Long, String> validateTokenAndGetUserIdAndTokenType(final String token) throws InvalidToken {
+    public Tuple<Long, String> validateTokenAndGetUserIdAndTokenType(final String token) throws InvalidTokenException {
         try {
             String payload = verifier.verify(token).getSubject();
             String[] parts = payload.split(":");
             return new Tuple<>(Long.parseLong(parts[0]), parts[1]);
         } catch (final JWTVerificationException verificationEx) {
             logger.warn("token invalid: {}", verificationEx.getMessage());
-            throw new InvalidToken();
+            throw new InvalidTokenException();
         } catch (final Exception ex) {
             logger.error("token invalid: {}", ex.getMessage());
-            throw new InvalidToken();
+            throw new InvalidTokenException();
         }
     }
 

@@ -13,14 +13,14 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import sk.avo.chatapi.domain.user.exceptions.UserNotFoundException;
-import sk.avo.chatapi.domain.security.exceptions.InvalidToken;
+import sk.avo.chatapi.domain.model.user.UserNotFoundException;
+import sk.avo.chatapi.domain.model.security.InvalidTokenException;
 import org.springframework.web.filter.OncePerRequestFilter;
 import sk.avo.chatapi.application.ApplicationService;
-import sk.avo.chatapi.domain.user.models.UserModel;
+import sk.avo.chatapi.domain.model.user.UserModel;
 import org.springframework.stereotype.Component;
-import sk.avo.chatapi.domain.security.dto.Tuple;
 import sk.avo.chatapi.security.model.UserRoles;
+import sk.avo.chatapi.domain.shared.Tuple;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
@@ -45,7 +45,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         try {
             tokenPayloadTuple = applicationService.validateTokenAndGetUserIdAndTokenType(token);
             userModel = applicationService.getUserById(tokenPayloadTuple.getFirst());
-        } catch (final InvalidToken | UserNotFoundException e) {
+        } catch (final InvalidTokenException | UserNotFoundException e) {
             logger.info(e.getMessage());
             chain.doFilter(request, response);
             return;

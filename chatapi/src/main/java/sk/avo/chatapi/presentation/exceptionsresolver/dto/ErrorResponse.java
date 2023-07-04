@@ -1,4 +1,4 @@
-package sk.avo.chatapi.presentation.dto;
+package sk.avo.chatapi.presentation.exceptionsresolver.dto;
 
 import lombok.Getter;
 import lombok.Setter;
