@@ -47,8 +47,6 @@ public class UserService {
         user.setUsername(username);
         user.setPasswordHash(passwordEncoder.encode(password));
         user.setEmail(email);
-        user.setIsVerified(false);
-        user.setCreatedAt(java.time.LocalDateTime.now());
 
         verifyEmailRepo.addEmail(user.getEmail());
         verifyEmailRepo.generateCode(user.getEmail());
