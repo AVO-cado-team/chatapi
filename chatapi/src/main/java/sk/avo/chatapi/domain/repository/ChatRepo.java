@@ -1,6 +1,7 @@
 package sk.avo.chatapi.domain.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import sk.avo.chatapi.domain.model.chat.ChatModel;
+import sk.avo.chatapi.domain.model.chat.ChatEntity;
 
-public interface ChatRepo extends JpaRepository<ChatModel, Long> {}
+public interface ChatRepo extends JpaRepository<ChatEntity, Long> {
+}

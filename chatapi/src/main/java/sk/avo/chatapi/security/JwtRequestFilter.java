@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import sk.avo.chatapi.application.ApplicationService;
 import sk.avo.chatapi.domain.model.security.InvalidTokenException;
-import sk.avo.chatapi.domain.model.user.UserModel;
+import sk.avo.chatapi.domain.model.user.UserEntity;
 import sk.avo.chatapi.domain.model.user.UserNotFoundException;
 import sk.avo.chatapi.domain.shared.Tuple;
 import sk.avo.chatapi.security.model.UserRoles;
@@ -42,10 +42,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     }
     Tuple<Long, String> tokenPayloadTuple;
     final String token = header.substring(7);
-    final UserModel userModel;
+    final UserEntity userEntity;
     try {
       tokenPayloadTuple = applicationService.validateTokenAndGetUserIdAndTokenType(token);
-      userModel = applicationService.getUserById(tokenPayloadTuple.getFirst());
+      userEntity = applicationService.getUserById(tokenPayloadTuple.getFirst());
     } catch (final InvalidTokenException | UserNotFoundException e) {
       logger.info(e.getMessage());
       chain.doFilter(request, response);
@@ -56,10 +56,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
       chain.doFilter(request, response);
       return;
     }
-    boolean isUserVerified = userModel.getIsVerified();
+    boolean isUserVerified = userEntity.getIsVerified();
     final UsernamePasswordAuthenticationToken authentication =
         new UsernamePasswordAuthenticationToken(
-            userModel,
+                userEntity,
             null,
             List.of(
                 (GrantedAuthority)

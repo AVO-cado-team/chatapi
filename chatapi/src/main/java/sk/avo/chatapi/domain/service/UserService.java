@@ -10,7 +10,7 @@ import sk.avo.chatapi.domain.model.user.UserAlreadyExistsException;
 import sk.avo.chatapi.domain.model.user.UserEmailIsAlreadyVerifiedException;
 import sk.avo.chatapi.domain.model.user.UserEmailVerifyException;
 import sk.avo.chatapi.domain.model.user.UserIsNotVerifiedException;
-import sk.avo.chatapi.domain.model.user.UserModel;
+import sk.avo.chatapi.domain.model.user.UserEntity;
 import sk.avo.chatapi.domain.model.user.UserNotFoundException;
 import sk.avo.chatapi.domain.repository.UserRepo;
 import sk.avo.chatapi.domain.repository.VerifyEmailRepo;
@@ -28,7 +28,7 @@ public class UserService {
   }
 
   @Transactional
-  public UserModel createUser(String username, String password, String email)
+  public UserEntity createUser(String username, String password, String email)
       throws UserAlreadyExistsException {
     if ((userRepo.findByUsername(username).isPresent() || userRepo.findByEmail(email).isPresent())
         && userRepo.findByEmail(email).get().getIsVerified()) {
@@ -39,7 +39,7 @@ public class UserService {
       userRepo.delete(userRepo.findByEmail(email).get());
       userRepo.flush();
     }
-    UserModel user = new UserModel();
+    UserEntity user = new UserEntity();
     user.setUsername(username);
     user.setPasswordHash(passwordEncoder.encode(password));
     user.setEmail(email);
@@ -51,9 +51,9 @@ public class UserService {
   }
 
   @Transactional
-  public UserModel verifyEmail(String email, String code)
+  public UserEntity verifyEmail(String email, String code)
       throws UserNotFoundException, UserEmailVerifyException {
-    Optional<UserModel> user = userRepo.findByEmail(email);
+    Optional<UserEntity> user = userRepo.findByEmail(email);
     if (user.isEmpty()) {
       throw new UserNotFoundException();
     }
@@ -66,9 +66,9 @@ public class UserService {
   }
 
   @Transactional
-  public UserModel getUserByUsernameAndPassword(String username, String password)
+  public UserEntity getUserByUsernameAndPassword(String username, String password)
       throws UserNotFoundException, UserIsNotVerifiedException {
-    Optional<UserModel> user = userRepo.findByUsername(username);
+    Optional<UserEntity> user = userRepo.findByUsername(username);
     if (user.isEmpty()) {
       throw new UserNotFoundException();
     }
@@ -82,8 +82,8 @@ public class UserService {
   }
 
   @Transactional
-  public UserModel getUserByUsername(String username) throws UserNotFoundException {
-    Optional<UserModel> user = userRepo.findByUsername(username);
+  public UserEntity getUserByUsername(String username) throws UserNotFoundException {
+    Optional<UserEntity> user = userRepo.findByUsername(username);
     if (user.isEmpty()) {
       throw new UserNotFoundException();
     }
@@ -91,17 +91,17 @@ public class UserService {
   }
 
   @Transactional
-  public UserModel getUserById(Long id) throws UserNotFoundException {
-    Optional<UserModel> user = userRepo.findById(id);
+  public UserEntity getUserById(Long id) throws UserNotFoundException {
+    Optional<UserEntity> user = userRepo.findById(id);
     if (user.isEmpty()) {
       throw new UserNotFoundException();
     }
     return user.get();
   }
 
-  public UserModel regenerateEmailVerificationCode(String email)
+  public UserEntity regenerateEmailVerificationCode(String email)
       throws UserNotFoundException, UserEmailIsAlreadyVerifiedException {
-    Optional<UserModel> user = userRepo.findByEmail(email);
+    Optional<UserEntity> user = userRepo.findByEmail(email);
     if (user.isEmpty()) {
       throw new UserNotFoundException();
     }

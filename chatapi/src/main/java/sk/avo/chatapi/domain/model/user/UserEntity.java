@@ -7,13 +7,14 @@ import java.util.Date;
 import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
-import sk.avo.chatapi.domain.model.chat.ChatModel;
-import sk.avo.chatapi.domain.model.message.BaseMessageModel;
+import sk.avo.chatapi.domain.model.chat.ChatEntity;
+import sk.avo.chatapi.domain.model.chat.MessageEntity;
 
 @Entity
 @Getter
 @Setter
-public class UserModel {
+@Table(name = "users")
+public class UserEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -27,9 +28,9 @@ public class UserModel {
   @Email
   private String email;
 
-  @ManyToMany Set<ChatModel> chats;
-  @OneToMany Set<ChatModel> ownedChats;
-  @OneToMany Set<BaseMessageModel> messages;
+  @ManyToMany Set<ChatEntity> chats;
+  @OneToMany Set<ChatEntity> ownedChats;
+  @OneToMany Set<MessageEntity> messages;
 
   @Temporal(TemporalType.TIMESTAMP)
   private Date updatedAt;

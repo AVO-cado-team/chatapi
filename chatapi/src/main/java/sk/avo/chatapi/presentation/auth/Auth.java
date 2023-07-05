@@ -39,9 +39,9 @@ public class Auth {
   @PostMapping("/email/verify")
   public ResponseEntity<String> verifyEmail(
       Authentication authentication, @RequestBody VerifyEmailRequest verifyEmailRequest) {
-    UserModel userModel = (UserModel) authentication.getPrincipal();
+    UserEntity userEntity = (UserEntity) authentication.getPrincipal();
     try {
-      applicationService.verifyEmail(userModel.getEmail(), verifyEmailRequest.getCode());
+      applicationService.verifyEmail(userEntity.getEmail(), verifyEmailRequest.getCode());
     } catch (UserNotFoundException e) {
       return ResponseEntity.notFound().build();
     } catch (UserEmailVerifyException e) {
@@ -53,11 +53,11 @@ public class Auth {
 
   @PostMapping("/email/resend-code")
   public ResponseEntity<ResendEmailResponse> resendEmail(Authentication authentication) {
-    UserModel userModel = (UserModel) authentication.getPrincipal();
-    if (userModel == null) return ResponseEntity.badRequest().build();
+    UserEntity userEntity = (UserEntity) authentication.getPrincipal();
+    if (userEntity == null) return ResponseEntity.badRequest().build();
 
     try {
-      applicationService.regenerateEmailVerificationCode(userModel.getEmail());
+      applicationService.regenerateEmailVerificationCode(userEntity.getEmail());
     } catch (UserNotFoundException e) {
       return ResponseEntity.notFound().build();
     } catch (UserEmailIsAlreadyVerifiedException e) {
@@ -97,14 +97,14 @@ public class Auth {
 
   @GetMapping("/me")
   public ResponseEntity<MeResponse> me(Authentication authentication) {
-    UserModel userModel = (UserModel) authentication.getPrincipal();
-    if (userModel == null) return ResponseEntity.badRequest().build();
+    UserEntity userEntity = (UserEntity) authentication.getPrincipal();
+    if (userEntity == null) return ResponseEntity.badRequest().build();
     MeResponse meResponse = new MeResponse();
-    meResponse.setId(userModel.getId());
-    meResponse.setUsername(userModel.getUsername());
-    meResponse.setIsVerified(userModel.getIsVerified());
-    meResponse.setEmail(userModel.getEmail());
-    meResponse.setPasswordHash(userModel.getPasswordHash());
+    meResponse.setId(userEntity.getId());
+    meResponse.setUsername(userEntity.getUsername());
+    meResponse.setIsVerified(userEntity.getIsVerified());
+    meResponse.setEmail(userEntity.getEmail());
+    meResponse.setPasswordHash(userEntity.getPasswordHash());
     return ResponseEntity.ok(meResponse);
   }
 }
