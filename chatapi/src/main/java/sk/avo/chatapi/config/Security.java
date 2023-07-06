@@ -8,7 +8,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import sk.avo.chatapi.security.JwtRequestFilter;
-import sk.avo.chatapi.security.model.UserRoles;
+import sk.avo.chatapi.security.shared.UserRoles;
 
 @Configuration
 public class Security {

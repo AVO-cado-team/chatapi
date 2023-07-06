@@ -1,4 +1,4 @@
-package sk.avo.chatapi.presentation.dev.dto;
+package sk.avo.chatapi.presentation.dto.dev;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -1,7 +1,9 @@
 package sk.avo.chatapi.application;
 
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import sk.avo.chatapi.application.dto.*;
+import sk.avo.chatapi.domain.model.chat.ChatEntity;
 import sk.avo.chatapi.domain.model.security.InvalidTokenException;
 import sk.avo.chatapi.domain.model.user.*;
 import sk.avo.chatapi.domain.service.JwtTokenService;
@@ -12,10 +14,22 @@ import sk.avo.chatapi.domain.shared.Tuple;
 public class ApplicationService {
   private final UserService userService;
   private final JwtTokenService jwtTokenService;
+  private final ApplicationContext applicationContext;
 
-  public ApplicationService(UserService userService, JwtTokenService jwtTokenService) {
+  /**
+   * Call domain service from application service
+   * @param domainServiceInterface
+   * @return domain service
+   * @param <T> domain service interface
+   */
+  public <T> T callDomainService(Class<T> domainServiceInterface) {
+    return applicationContext.getBean(domainServiceInterface);
+  }
+
+  public ApplicationService(UserService userService, JwtTokenService jwtTokenService, ApplicationContext applicationContext) {
     this.userService = userService;
     this.jwtTokenService = jwtTokenService;
+    this.applicationContext = applicationContext;
   }
 
   public TokenPair signup(String username, String password, String email)
@@ -62,9 +76,5 @@ public class ApplicationService {
   public Tuple<Long, String> validateTokenAndGetUserIdAndTokenType(final String token)
       throws InvalidTokenException {
     return jwtTokenService.validateTokenAndGetUserIdAndTokenType(token);
-  }
-
-  public UserEntity getUserById(Long id) throws UserNotFoundException {
-    return userService.getUserById(id);
   }
 }

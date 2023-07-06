@@ -1,4 +1,4 @@
-package sk.avo.chatapi.security.model;
+package sk.avo.chatapi.security.shared;
 
 public class UserRoles {
   public static final String USER_VERIFIED = "USER_VERIFIED";
