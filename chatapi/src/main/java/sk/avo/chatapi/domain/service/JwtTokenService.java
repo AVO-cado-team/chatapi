@@ -4,19 +4,19 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
-import java.time.Duration;
-import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-// import org.springframework.security.core.userdetails.UserDetails;
 import sk.avo.chatapi.domain.model.security.InvalidTokenException;
 import sk.avo.chatapi.domain.shared.Tuple;
 
+import java.time.Duration;
+import java.time.Instant;
+
 @Service
 public class JwtTokenService {
-  private static final Duration JWT_ACCESS_TOKEN_VALIDITY = Duration.ofMinutes(20);
+  private static final Duration JWT_ACCESS_TOKEN_VALIDITY = Duration.ofMinutes(10000);
   private static final Duration JWT_REFRESH_TOKEN_VALIDITY = Duration.ofDays(30);
   private static final Logger logger = LoggerFactory.getLogger(JwtTokenService.class);
   private final Algorithm hmac512;
