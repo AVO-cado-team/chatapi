@@ -7,6 +7,9 @@ import sk.avo.chatapi.domain.model.user.UserEntity;
 import sk.avo.chatapi.domain.repository.ChatRepo;
 import sk.avo.chatapi.domain.repository.MessageRepo;
 import sk.avo.chatapi.domain.repository.UserRepo;
+import sk.avo.chatapi.domain.shared.Tuple;
+
+import java.util.Date;
 
 /**
  * Chat Service
@@ -48,8 +51,9 @@ public class ChatService {
     }
 
     public void removeUserFromChat(Long userId, long chatId) throws ChatNotFoundException, UserIsNotInTheChatException {
-        ChatEntity chat = chatRepo.findById(chatId).orElseThrow(ChatNotFoundException::new);
-        UserEntity user = chat.getUsers().stream().filter(u -> u.getId().equals(userId)).findFirst().orElseThrow(UserIsNotInTheChatException::new);
+        Tuple<ChatEntity, UserEntity> tuple = getChatAndUserFromChat(chatId, userId);
+        ChatEntity chat = tuple.getFirst();
+        UserEntity user = tuple.getSecond();
         chat.getUsers().remove(user);
         chat = chatRepo.save(chat);
         createUserLeaveMessage(userId, chatId);
@@ -58,8 +62,8 @@ public class ChatService {
 
     public MessageEntity createMessage(Long userId, Long chatId, String text, Long replyToMessageId, MessageType type, String content)
             throws ChatNotFoundException, UserIsNotInTheChatException {
-        ChatEntity chat = chatRepo.findById(chatId).orElseThrow(ChatNotFoundException::new);
-        UserEntity user = chat.getUsers().stream().filter(u -> u.getId().equals(userId)).findFirst().orElseThrow(UserIsNotInTheChatException::new);
+        Tuple<ChatEntity, UserEntity> tuple = getChatAndUserFromChat(chatId, userId);
+        UserEntity user = tuple.getSecond();
         MessageEntity replyToMessage = messageRepo.findMessageByChatIdAndMessageId(chatId, replyToMessageId).orElse(null);
         MessageEntity message = new MessageEntity() {{
             setChatId(chatId);
@@ -102,17 +106,28 @@ public class ChatService {
         return chatRepo.findById(id).orElseThrow(ChatNotFoundException::new);
     }
 
-    public void deleteChat(Long id, Long deletorId) throws ChatNotFoundException, UserIsNotInTheChatException {
-        ChatEntity chat = chatRepo.findById(id).orElseThrow(ChatNotFoundException::new);
-        chat.getUsers().stream().filter(u -> u.getId().equals(deletorId)).findFirst().orElseThrow(UserIsNotInTheChatException::new);
+    public void deleteChat(Long chatId, Long deletorId) throws ChatNotFoundException, UserIsNotInTheChatException {
+        Tuple<ChatEntity, UserEntity> tuple = getChatAndUserFromChat(chatId, deletorId);
+        ChatEntity chat = tuple.getFirst();
         chatRepo.delete(chat);
     }
 
     public void deleteMessage(Long chatId, Long messageId, Long deletorId)
             throws ChatNotFoundException, UserIsNotInTheChatException, MessageNotFoundException {
-        chatRepo.findById(chatId).orElseThrow(ChatNotFoundException::new)
-                .getUsers().stream().filter(u -> u.getId().equals(deletorId)).findFirst().orElseThrow(UserIsNotInTheChatException::new);
+        getChatAndUserFromChat(chatId, deletorId);
         messageRepo.findMessageByChatIdAndMessageId(chatId, messageId).orElseThrow(MessageNotFoundException::new);
         messageRepo.deleteByChatIdAndMessageId(chatId, messageId);
+    }
+
+    public Date getLastMessageTimestamp(Long chatId, Long userId) throws ChatNotFoundException, UserIsNotInTheChatException {
+        Tuple<ChatEntity, UserEntity> tuple = getChatAndUserFromChat(chatId, userId);
+        return messageRepo.findFirstByChatIdOrderByTimestampDesc(chatId).orElseThrow(ChatNotFoundException::new).getTimestamp();
+    }
+
+    private Tuple<ChatEntity, UserEntity> getChatAndUserFromChat(Long chatId, Long userId)
+            throws ChatNotFoundException, UserIsNotInTheChatException {
+        ChatEntity chat = chatRepo.findById(chatId).orElseThrow(ChatNotFoundException::new);
+        UserEntity user = chat.getUsers().stream().filter(u -> u.getId().equals(userId)).findFirst().orElseThrow(UserIsNotInTheChatException::new);
+        return new Tuple<>(chat, user);
     }
 }

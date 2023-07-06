@@ -48,7 +48,7 @@ public class Auth {
       return ResponseEntity.badRequest().build();
     }
 
-    return ResponseEntity.ok("{}");
+    return ResponseEntity.ok().build();
   }
 
   @PostMapping("/email/resend-code")
@@ -93,18 +93,5 @@ public class Auth {
     }
     return ResponseEntity.ok(
         new RefreshResponse(tokenPair.getAccessToken(), tokenPair.getRefreshToken()));
-  }
-
-  @GetMapping("/me")
-  public ResponseEntity<MeResponse> me(Authentication authentication) {
-    UserEntity userEntity = (UserEntity) authentication.getPrincipal();
-    if (userEntity == null) return ResponseEntity.badRequest().build();
-    MeResponse meResponse = new MeResponse();
-    meResponse.setId(userEntity.getId());
-    meResponse.setUsername(userEntity.getUsername());
-    meResponse.setIsVerified(userEntity.getIsVerified());
-    meResponse.setEmail(userEntity.getEmail());
-    meResponse.setPasswordHash(userEntity.getPasswordHash());
-    return ResponseEntity.ok(meResponse);
   }
 }

@@ -19,6 +19,7 @@ import sk.avo.chatapi.application.ApplicationService;
 import sk.avo.chatapi.domain.model.security.InvalidTokenException;
 import sk.avo.chatapi.domain.model.user.UserEntity;
 import sk.avo.chatapi.domain.model.user.UserNotFoundException;
+import sk.avo.chatapi.domain.service.UserService;
 import sk.avo.chatapi.domain.shared.Tuple;
 import sk.avo.chatapi.security.shared.UserRoles;
 
@@ -45,7 +46,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     final UserEntity userEntity;
     try {
       tokenPayloadTuple = applicationService.validateTokenAndGetUserIdAndTokenType(token);
-      userEntity = applicationService.getUserById(tokenPayloadTuple.getFirst());
+      userEntity = applicationService.callDomainService(UserService.class).getUserById(tokenPayloadTuple.getFirst());
     } catch (final InvalidTokenException | UserNotFoundException e) {
       logger.info(e.getMessage());
       chain.doFilter(request, response);
