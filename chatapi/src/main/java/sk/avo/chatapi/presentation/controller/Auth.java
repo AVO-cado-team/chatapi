@@ -1,4 +1,4 @@
-package sk.avo.chatapi.presentation.auth;
+package sk.avo.chatapi.presentation.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -9,7 +9,7 @@ import sk.avo.chatapi.application.ApplicationService;
 import sk.avo.chatapi.application.dto.TokenPair;
 import sk.avo.chatapi.domain.model.security.InvalidTokenException;
 import sk.avo.chatapi.domain.model.user.*;
-import sk.avo.chatapi.presentation.auth.dto.*;
+import sk.avo.chatapi.presentation.dto.auth.*;
 
 @RestController
 @RequestMapping("/api/auth/")

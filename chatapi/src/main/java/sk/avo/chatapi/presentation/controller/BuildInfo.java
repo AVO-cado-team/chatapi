@@ -1,10 +1,10 @@
-package sk.avo.chatapi.presentation.dev;
+package sk.avo.chatapi.presentation.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import sk.avo.chatapi.config.Application;
-import sk.avo.chatapi.presentation.dev.dto.*;
+import sk.avo.chatapi.presentation.dto.dev.BuildInfoResponse;
 
 @RestController
 @RequestMapping("/api/dev/")

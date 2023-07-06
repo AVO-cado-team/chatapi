@@ -1,4 +1,4 @@
-package sk.avo.chatapi.presentation.auth.dto;
+package sk.avo.chatapi.presentation.dto.auth;
 
 import lombok.Getter;
 import lombok.Setter;

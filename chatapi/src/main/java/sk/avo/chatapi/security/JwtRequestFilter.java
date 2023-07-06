@@ -20,7 +20,7 @@ import sk.avo.chatapi.domain.model.security.InvalidTokenException;
 import sk.avo.chatapi.domain.model.user.UserEntity;
 import sk.avo.chatapi.domain.model.user.UserNotFoundException;
 import sk.avo.chatapi.domain.shared.Tuple;
-import sk.avo.chatapi.security.model.UserRoles;
+import sk.avo.chatapi.security.shared.UserRoles;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
