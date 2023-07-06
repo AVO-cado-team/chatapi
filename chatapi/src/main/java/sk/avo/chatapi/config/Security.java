@@ -1,7 +1,5 @@
 package sk.avo.chatapi.config;
 
-import static org.springframework.security.config.Customizer.withDefaults;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -22,7 +20,7 @@ public class Security {
 
   @Bean
   public SecurityFilterChain configure(final HttpSecurity http) throws Exception {
-    return http.cors(withDefaults())
+    return http.cors( AbstractHttpConfigurer::disable)
         .csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(
             (authorize) ->
@@ -33,6 +31,9 @@ public class Security {
                         "/swagger-ui/**",
                         "/swagger-ui.html",
                         "/v3/api-docs/**",
+                        "/room/**",
+                        "/app/**",
+                        "/docs",
                         "/api/dev/**")
                     .permitAll()
                     .requestMatchers("/api/auth/refresh")
