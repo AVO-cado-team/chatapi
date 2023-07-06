@@ -1,17 +1,17 @@
 package sk.avo.chatapi.domain.model.chat;
 
 import jakarta.persistence.*;
-import java.util.Date;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import sk.avo.chatapi.domain.model.user.UserEntity;
 
+import java.util.Date;
+
 
 @Entity
 @Getter
 @Setter
-@Table(name = "messages")
 public class MessageEntity {
   @Id
   @NotNull

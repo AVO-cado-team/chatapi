@@ -3,21 +3,17 @@ package sk.avo.chatapi;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import sk.avo.chatapi.domain.model.user.UserModel;
+import sk.avo.chatapi.domain.model.user.UserEntity;
 import sk.avo.chatapi.domain.repository.UserRepo;
 
 
 @SpringBootApplication
-@EnableScheduling
 public class App {
 
-  @Autowired
   private final UserRepo userRepo;
   private Logger LOG = LoggerFactory.getLogger(App.class);
   public App(UserRepo userRepo) {
@@ -33,7 +29,7 @@ public class App {
     String username = "user";
     String password = "user";
     String email = "user@user.com";
-    UserModel user = new UserModel();
+    UserEntity user = new UserEntity();
     user.setUsername(username);
     final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     user.setPasswordHash(passwordEncoder.encode(password));

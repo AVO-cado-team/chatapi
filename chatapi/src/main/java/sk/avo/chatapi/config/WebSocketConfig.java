@@ -23,7 +23,7 @@ import org.springframework.web.socket.handler.WebSocketHandlerDecorator;
 import org.springframework.web.socket.handler.WebSocketHandlerDecoratorFactory;
 import sk.avo.chatapi.application.ApplicationService;
 import sk.avo.chatapi.domain.model.security.InvalidTokenException;
-import sk.avo.chatapi.domain.model.user.UserModel;
+import sk.avo.chatapi.domain.model.user.UserEntity;
 import sk.avo.chatapi.domain.model.user.UserNotFoundException;
 import sk.avo.chatapi.domain.shared.Tuple;
 import sk.avo.chatapi.security.model.UserRoles;
@@ -76,11 +76,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     try {
                         String token = Objects.requireNonNull(accessor.getNativeHeader("xxx").get(0));
                         LOG.warn("Token: {}", token);
-                        final UserModel userModel;
+                        final UserEntity userEntity;
                         Tuple<Long, String> tokenPayloadTuple = null;
                         try {
                             tokenPayloadTuple = applicationService.validateTokenAndGetUserIdAndTokenType(token);
-                            userModel = applicationService.getUserById(tokenPayloadTuple.getFirst());
+                            userEntity = applicationService.getUserById(tokenPayloadTuple.getFirst());
                         } catch (final InvalidTokenException | UserNotFoundException e) {
                             LOG.info(e.getMessage());
                             return null;
@@ -89,10 +89,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                             LOG.info("token is not access");
                             return null;
                         }
-                        boolean isUserVerified = userModel.getIsVerified();
+                        boolean isUserVerified = userEntity.getIsVerified();
                         final UsernamePasswordAuthenticationToken authentication =
                                 new UsernamePasswordAuthenticationToken(
-                                        userModel,
+                                        userEntity,
                                         null,
                                         List.of(
                                                 (GrantedAuthority)
