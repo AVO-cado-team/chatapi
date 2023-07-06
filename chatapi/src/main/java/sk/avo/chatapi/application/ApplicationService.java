@@ -20,26 +20,26 @@ public class ApplicationService {
 
   public TokenPair signup(String username, String password, String email)
       throws UserAlreadyExistsException {
-    UserModel userModel = userService.createUser(username, password, email);
+    UserEntity userEntity = userService.createUser(username, password, email);
     TokenPair tokenPair = new TokenPair();
-    tokenPair.setAccessToken(jwtTokenService.generateAccessToken(userModel.getId()));
-    tokenPair.setRefreshToken(jwtTokenService.generateRefreshToken(userModel.getId()));
+    tokenPair.setAccessToken(jwtTokenService.generateAccessToken(userEntity.getId()));
+    tokenPair.setRefreshToken(jwtTokenService.generateRefreshToken(userEntity.getId()));
     return tokenPair;
   }
 
-  public UserModel verifyEmail(String email, String code)
+  public UserEntity verifyEmail(String email, String code)
       throws UserNotFoundException, UserEmailVerifyException {
     return userService.verifyEmail(email, code);
   }
 
-  public UserModel regenerateEmailVerificationCode(String email)
+  public UserEntity regenerateEmailVerificationCode(String email)
       throws UserNotFoundException, UserEmailIsAlreadyVerifiedException {
     return userService.regenerateEmailVerificationCode(email);
   }
 
   public TokenPair login(String username, String password)
       throws UserNotFoundException, UserIsNotVerifiedException {
-    final UserModel user = userService.getUserByUsernameAndPassword(username, password);
+    final UserEntity user = userService.getUserByUsernameAndPassword(username, password);
     final TokenPair tokenPair = new TokenPair();
     tokenPair.setAccessToken(jwtTokenService.generateAccessToken(user.getId()));
     tokenPair.setRefreshToken(jwtTokenService.generateRefreshToken(user.getId()));
@@ -64,7 +64,7 @@ public class ApplicationService {
     return jwtTokenService.validateTokenAndGetUserIdAndTokenType(token);
   }
 
-  public UserModel getUserById(Long id) throws UserNotFoundException {
+  public UserEntity getUserById(Long id) throws UserNotFoundException {
     return userService.getUserById(id);
   }
 }
