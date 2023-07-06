@@ -63,7 +63,6 @@ public class ChatService {
         MessageEntity replyToMessage = messageRepo.findMessageByChatIdAndMessageId(chatId, replyToMessageId).orElse(null);
         MessageEntity message = new MessageEntity() {{
             setChatId(chatId);
-            setChat(chat);
             setSender(user);
             setText(text);
             setReplyTo(replyToMessage);

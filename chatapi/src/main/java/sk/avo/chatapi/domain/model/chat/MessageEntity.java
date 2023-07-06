@@ -1,27 +1,25 @@
 package sk.avo.chatapi.domain.model.chat;
 
 import jakarta.persistence.*;
+import java.util.Date;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import sk.avo.chatapi.domain.model.user.UserEntity;
 
-import java.util.Date;
-
 
 @Entity
 @Getter
 @Setter
+@Table(name = "messages")
+@IdClass(MessageId.class)
 public class MessageEntity {
   @Id
-  @NotNull
   private Long chatId;
-
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long messageId;
 
-  @ManyToOne @NotNull private ChatEntity chat;
   @ManyToOne @NotNull private UserEntity sender;
   @OneToOne private MessageEntity replyTo;
 
