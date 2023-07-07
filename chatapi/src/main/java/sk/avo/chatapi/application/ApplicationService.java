@@ -4,17 +4,24 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import sk.avo.chatapi.application.dto.*;
 import sk.avo.chatapi.domain.model.chat.ChatEntity;
+import sk.avo.chatapi.domain.model.chat.ChatNotFoundException;
+import sk.avo.chatapi.domain.model.chat.UserIsNotInTheChatException;
 import sk.avo.chatapi.domain.model.security.InvalidTokenException;
 import sk.avo.chatapi.domain.model.user.*;
+import sk.avo.chatapi.domain.service.ChatService;
 import sk.avo.chatapi.domain.service.JwtTokenService;
 import sk.avo.chatapi.domain.service.UserService;
 import sk.avo.chatapi.domain.shared.Tuple;
+
+import java.util.Date;
+import java.util.Set;
 
 @Service
 public class ApplicationService {
   private final UserService userService;
   private final JwtTokenService jwtTokenService;
   private final ApplicationContext applicationContext;
+  private final ChatService chatService;
 
   /**
    * Call domain service from application service
@@ -26,10 +33,11 @@ public class ApplicationService {
     return applicationContext.getBean(domainServiceInterface);
   }
 
-  public ApplicationService(UserService userService, JwtTokenService jwtTokenService, ApplicationContext applicationContext) {
+  public ApplicationService(UserService userService, JwtTokenService jwtTokenService, ApplicationContext applicationContext, ChatService chatService) {
     this.userService = userService;
     this.jwtTokenService = jwtTokenService;
     this.applicationContext = applicationContext;
+    this.chatService = chatService;
   }
 
   public TokenPair signup(String username, String password, String email)
@@ -76,5 +84,35 @@ public class ApplicationService {
   public Tuple<Long, String> validateTokenAndGetUserIdAndTokenType(final String token)
       throws InvalidTokenException {
     return jwtTokenService.validateTokenAndGetUserIdAndTokenType(token);
+  }
+
+  public ChatEntity createChat(String name, Long userId) throws ChatNotFoundException, UserIsNotInTheChatException {
+    return chatService.createChat(name);
+  }
+
+  public Date getChatLastMessageTimestamp(Long chatId, Long userId) throws ChatNotFoundException, UserIsNotInTheChatException {
+    return chatService.getLastMessageTimestamp(chatId, userId);
+  }
+
+  public Set<ChatEntity> getUserChats(Long userId) {
+    return chatService.getUserChats(userId);
+  }
+
+  public ChatAndLastMessageTimestamp getChatAndLastMessageTimestamp(Long chatId, Long userId)
+          throws ChatNotFoundException, UserIsNotInTheChatException {
+    return new ChatAndLastMessageTimestamp() {{
+      setChat(chatService.getChatAndUserFromChat(chatId, userId).getFirst());
+      setLastMessageTimestamp(chatService.getLastMessageTimestamp(chatId, userId));
+    }};
+  }
+
+  public void deleteChat(Long chatId, Long userId) throws ChatNotFoundException, UserIsNotInTheChatException {
+    chatService.deleteChat(chatId, userId);
+  }
+
+  public void addUserToChat(Long chatId, Long userId, String newUserUsername)
+          throws ChatNotFoundException, UserIsNotInTheChatException, UserNotFoundException {
+    Long newUserId = userService.getUserByUsername(newUserUsername).getId();
+    chatService.addUserToChat(chatId, userId, newUserId);
   }
 }
