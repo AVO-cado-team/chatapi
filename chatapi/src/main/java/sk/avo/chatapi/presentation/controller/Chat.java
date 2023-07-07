@@ -11,8 +11,6 @@ import sk.avo.chatapi.domain.service.ChatService;
 import sk.avo.chatapi.presentation.dto.chat.ChatDetails;
 import sk.avo.chatapi.presentation.dto.chat.CreateChatRequest;
 
-import java.util.Date;
-
 @RestController
 @RequestMapping("/api/chat/")
 public class Chat {
@@ -32,14 +30,14 @@ public class Chat {
         ChatEntity chat = applicationService
                 .callDomainService(ChatService.class)
                 .createChat(createChatRequest.getName());
-        Date lastMessageTime = applicationService
-                .callDomainService(ChatService.class)
-                .getLastMessageTimestamp(chat.getId(), userEntity.getId());
-        ChatDetails chatDetails = new ChatDetails() {{
-            setChatId(chat.getId());
-            setName(chat.getName());
-            setLastMessageTime(lastMessageTime.getTime());
-        }};
+//        Date lastMessageTime = applicationService
+//                .callDomainService(ChatService.class)
+//                .getLastMessageTimestamp(chat.getId(), userEntity.getId());
+        ChatDetails chatDetails = new ChatDetails.ChatDetailsBuilder().build();
+        chatDetails.setChatId(chat.getId());
+        chatDetails.setName(chat.getName());
+//        chatDetails.setLastMessageTime(lastMessageTime.getTime());
+
         return ResponseEntity.ok(chatDetails);
     }
 
