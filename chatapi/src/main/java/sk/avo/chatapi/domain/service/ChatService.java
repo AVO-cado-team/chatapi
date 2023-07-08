@@ -31,29 +31,8 @@ public class ChatService {
     this.chatRepo = chatRepo;
     this.messageRepo = messageRepo;
     this.userRepo = userRepo;
-
-    test();
   }
 
-  private void test() {
-    final Long USER_ID = 1L;
-    UserEntity user = userRepo.findById(USER_ID).orElse(null);
-    ChatEntity chat = createChat("test");
-
-    try {
-      addFirstUserToChat(user, chat.getId());
-    } catch (ChatNotFoundException e) {
-      throw new RuntimeException(e);
-    }
-
-    try {
-      createMessage(USER_ID, chat.getId(), "test", null, MessageType.TEXT, null);
-    } catch (ChatNotFoundException | UserIsNotInTheChatException e) {
-      throw new RuntimeException(e);
-    }
-
-
-  }
   public ChatEntity createChat(String name) {
     ChatEntity chat = new ChatEntity();
     chat.setName(name);
@@ -67,9 +46,13 @@ public class ChatService {
   }
 
   public void addUserToChat(long chatId, Long userId, Long newUserId)
-          throws ChatNotFoundException, UserIsNotInTheChatException {
+          throws ChatNotFoundException, UserIsNotInTheChatException, UserIsAlreadyInTheChatException {
     getChatAndUserFromChat(chatId, userId);
     ChatEntity chat = chatRepo.findById(chatId).orElseThrow(ChatNotFoundException::new);
+//    find user
+    if (chat.getUsers().stream().anyMatch(user -> user.getId().equals(newUserId))) {
+      throw new UserIsAlreadyInTheChatException();
+    }
     UserEntity user = userRepo.findById(newUserId).orElseThrow();
     chat.getUsers().add(user);
     chatRepo.save(chat);
@@ -88,17 +71,17 @@ public class ChatService {
   public MessageEntity createMessage(Long userId, Long chatId, String text, Long replyToMessageId, MessageType type, String content)
           throws ChatNotFoundException, UserIsNotInTheChatException {
     Tuple<ChatEntity, UserEntity> tuple = getChatAndUserFromChat(chatId, userId);
+    MessageEntity replyToMessage = messageRepo.findMessageByChatIdAndMessageId(chatId, replyToMessageId).orElse(null);
     UserEntity user = tuple.getSecond();
-    MessageEntity replyToMessage = replyToMessageId == null ? null : messageRepo.findMessageByChatIdAndMessageId(chatId, replyToMessageId).orElse(null);
-    MessageEntity message = new MessageEntity() {{
-      setChatId(userId);
-      setSender(user);
-      setText(text);
-      setReplyTo(replyToMessage);
-      setType(type);
-      setContent(content);
-    }};
+    ChatEntity chat = tuple.getFirst();
 
+    MessageEntity message = new MessageEntity();
+    message.setChatId(chat.getId());
+    message.setSender(user);
+    message.setText(text);
+    message.setReplyTo(replyToMessage);
+    message.setType(type);
+    message.setContent(content);
     return messageRepo.save(message);
   }
 

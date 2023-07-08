@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import sk.avo.chatapi.application.dto.*;
 import sk.avo.chatapi.domain.model.chat.ChatEntity;
 import sk.avo.chatapi.domain.model.chat.ChatNotFoundException;
+import sk.avo.chatapi.domain.model.chat.UserIsAlreadyInTheChatException;
 import sk.avo.chatapi.domain.model.chat.UserIsNotInTheChatException;
 import sk.avo.chatapi.domain.model.security.InvalidTokenException;
 import sk.avo.chatapi.domain.model.user.*;
@@ -91,13 +92,9 @@ public class ApplicationService {
     ChatEntity chat = chatService.createChat(name);
     try {
       chat = chatService.addFirstUserToChat(userService.getUserById(userId), chat.getId());
-    } catch (UserNotFoundException e) {
-      throw new RuntimeException(e); // Unreachable
-    }
-    try {
       chatService.createChatCreateMessage(userId, chat.getId());
       chatService.createUserJoinMessage(userId, chat.getId());
-    } catch (UserIsNotInTheChatException e) {
+    } catch (UserNotFoundException | UserIsNotInTheChatException e) {
       throw new RuntimeException(e); // Unreachable
     }
     return chat;
@@ -124,8 +121,9 @@ public class ApplicationService {
   }
 
   public void addUserToChat(Long chatId, Long userId, String newUserUsername)
-          throws ChatNotFoundException, UserIsNotInTheChatException, UserNotFoundException {
+          throws ChatNotFoundException, UserIsNotInTheChatException, UserNotFoundException, UserIsAlreadyInTheChatException {
     Long newUserId = userService.getUserByUsername(newUserUsername).getId();
     chatService.addUserToChat(chatId, userId, newUserId);
+    chatService.createUserJoinMessage(newUserId, chatId);
   }
 }

@@ -2,7 +2,6 @@ package sk.avo.chatapi.domain.model.chat;
 
 import jakarta.persistence.*;
 import java.util.Date;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import sk.avo.chatapi.domain.model.user.UserEntity;
@@ -15,7 +14,7 @@ import sk.avo.chatapi.domain.model.user.UserEntity;
 @IdClass(MessageId.class)
 public class MessageEntity {
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
   private Long messageId;
 
   @Id

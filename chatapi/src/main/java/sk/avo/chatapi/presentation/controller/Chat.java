@@ -1,5 +1,6 @@
 package sk.avo.chatapi.presentation.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -7,6 +8,7 @@ import sk.avo.chatapi.application.ApplicationService;
 import sk.avo.chatapi.application.dto.ChatAndLastMessageTimestamp;
 import sk.avo.chatapi.domain.model.chat.ChatEntity;
 import sk.avo.chatapi.domain.model.chat.ChatNotFoundException;
+import sk.avo.chatapi.domain.model.chat.UserIsAlreadyInTheChatException;
 import sk.avo.chatapi.domain.model.chat.UserIsNotInTheChatException;
 import sk.avo.chatapi.domain.model.user.UserEntity;
 import sk.avo.chatapi.domain.model.user.UserNotFoundException;
@@ -36,16 +38,17 @@ public class Chat {
         Date lastMessageTime;
         try {
             chat = applicationService.createChat(createChatRequest.getName(), userEntity.getId());
-//            lastMessageTime = applicationService.getChatLastMessageTimestamp(chat.getId(), userEntity.getId());
+            lastMessageTime = applicationService.getChatLastMessageTimestamp(chat.getId(), userEntity.getId());
         } catch (ChatNotFoundException e) {
             return ResponseEntity.notFound().build();
+        } catch (UserIsNotInTheChatException e) {
+            return ResponseEntity.badRequest().build();
         }
         return ResponseEntity.created(null).body(
                 new ChatDetails() {{
                     setChatId(chat.getId());
                     setName(chat.getName());
-//                    setLastMessageTime(lastMessageTime.getTime());
-                    setLastMessageTime(0L);
+                    setLastMessageTime(lastMessageTime.getTime());
                 }}
         );
     }
@@ -89,12 +92,13 @@ public class Chat {
         } catch (UserIsNotInTheChatException e) {
             return ResponseEntity.badRequest().build();
         }
-        ChatDetails chatDetails = new ChatDetails() {{
-            setChatId(chatId);
-            setName(chatAndLastMessageTimestamp.getChat().getName());
-            setLastMessageTime(chatAndLastMessageTimestamp.getLastMessageTimestamp().getTime());
-        }};
-        return ResponseEntity.ok(chatDetails);
+        return ResponseEntity.ok(
+                new ChatDetails() {{
+                    setChatId(chatId);
+                    setName(chatAndLastMessageTimestamp.getChat().getName());
+                    setLastMessageTime(chatAndLastMessageTimestamp.getLastMessageTimestamp().getTime());
+                }}
+        );
     }
 
     @PatchMapping("/{chatId}")
@@ -135,6 +139,8 @@ public class Chat {
             return ResponseEntity.notFound().build();
         } catch (UserIsNotInTheChatException | UserNotFoundException e) {
             return ResponseEntity.badRequest().build();
+        } catch (UserIsAlreadyInTheChatException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
         return ResponseEntity.ok().build();
     }

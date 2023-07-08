@@ -127,5 +127,14 @@ public class UserService {
     userRepo.save(user);
     user.setIsVerified(true);
     userRepo.save(user);
+
+    user = new UserEntity();
+    user.setUsername("string");
+    user.setPasswordHash(passwordEncoder.encode("string"));
+    user.setEmail("string@str.test");
+    user.setIsVerified(true);
+    userRepo.save(user);
+    user.setIsVerified(true);
+    userRepo.save(user);
   }
 }
