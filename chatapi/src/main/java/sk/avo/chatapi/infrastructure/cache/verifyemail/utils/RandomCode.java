@@ -2,16 +2,16 @@ package sk.avo.chatapi.infrastructure.cache.verifyemail.utils;
 
 public class RandomCode {
   public static String generateCode(int length) {
-    String code = "";
+    StringBuilder code = new StringBuilder();
     for (int i = 0; i < length; i++) {
       int random = (int) (Math.random() * 36);
       if (random < 10) {
-        code += random;
+        code.append(random);
       } else {
-        code += (char) (random + 55);
+        code.append((char) (random + 55));
       }
     }
-    return code.toUpperCase();
+    return code.toString().toUpperCase();
   }
 
   public static String generateCode() {

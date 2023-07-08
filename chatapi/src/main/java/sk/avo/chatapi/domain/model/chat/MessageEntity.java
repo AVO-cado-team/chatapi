@@ -2,7 +2,6 @@ package sk.avo.chatapi.domain.model.chat;
 
 import jakarta.persistence.*;
 import java.util.Date;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import sk.avo.chatapi.domain.model.user.UserEntity;
@@ -15,22 +14,22 @@ import sk.avo.chatapi.domain.model.user.UserEntity;
 @IdClass(MessageId.class)
 public class MessageEntity {
   @Id
-  private Long chatId;
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
   private Long messageId;
 
-  @ManyToOne @NotNull private UserEntity sender;
+  @Id
+  private Long chatId;
+
+  @ManyToOne(fetch = FetchType.EAGER, optional = false)
+  private UserEntity sender;
   @OneToOne private MessageEntity replyTo;
 
-  @Column(length = 32, columnDefinition = "varchar(32) default 'TEXT'")
   @Enumerated(value = EnumType.STRING)
-  @NotNull
   private MessageType type;
 
-  @NotNull private String text;
-  @NotNull private String content;
-  @NotNull private Date timestamp;
+  private String text;
+  private String content;
+  private Date timestamp;
 
   @PrePersist
   protected void onCreate() {

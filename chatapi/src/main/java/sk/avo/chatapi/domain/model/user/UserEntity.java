@@ -28,10 +28,6 @@ public class UserEntity {
   @Email
   private String email;
 
-  @ManyToMany Set<ChatEntity> chats;
-  @OneToMany Set<ChatEntity> ownedChats;
-  @OneToMany Set<MessageEntity> messages;
-
   @Temporal(TemporalType.TIMESTAMP)
   private Date updatedAt;
 

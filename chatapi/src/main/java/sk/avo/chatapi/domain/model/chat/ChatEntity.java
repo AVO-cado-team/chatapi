@@ -1,17 +1,19 @@
 package sk.avo.chatapi.domain.model.chat;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 import sk.avo.chatapi.domain.model.user.UserEntity;
-
-import java.util.Set;
 
 
 @Entity
 @Getter
 @Setter
+@Table(name = "chats")
 public class ChatEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,17 +22,28 @@ public class ChatEntity {
   @Size(min = 3, max = 50)
   private String name;
 
-  @ManyToMany
-  Set<UserEntity> users;
+  // FIXME security issue, if chat have millions of users, all of them will be loaded to memory
+  @ManyToMany(fetch=FetchType.EAGER)
+  private Set<UserEntity> users = new HashSet<>();
 
-  @OneToMany
-  Set<MessageEntity> messages;
+  public void addUsers(Set<UserEntity> users) {
+    this.users.addAll(users);
+  }
 
-  @PrePersist
-  private void onCreate() {}
+  public void addUser(@NotNull UserEntity user) {
+      this.users.add(user);
+  }
 
-  @PreUpdate
-  private void onUpdate() {}
+  public void removeUser(UserEntity user) {
+      this.users.remove(user);
+  }
 
-  public ChatEntity() {}
+
+//  @PrePersist
+//  private void onCreate() {}
+//
+//  @PreUpdate
+//  private void onUpdate() {}
+//
+//  public ChatEntity() {}
 }
