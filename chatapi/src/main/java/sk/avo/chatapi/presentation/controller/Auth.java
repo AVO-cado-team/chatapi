@@ -86,8 +86,6 @@ public class Auth {
     TokenPair tokenPair;
     try {
       tokenPair = applicationService.refresh(refreshRequest.getRefreshToken());
-    } catch (UserNotFoundException e) {
-      return ResponseEntity.notFound().build();
     } catch (InvalidTokenException e) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }

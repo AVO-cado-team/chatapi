@@ -6,6 +6,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
+
+import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -34,7 +36,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
   @Override
   protected void doFilterInternal(
-      final HttpServletRequest request, final HttpServletResponse response, final FilterChain chain)
+          final HttpServletRequest request, final @NotNull HttpServletResponse response, final FilterChain chain)
       throws ServletException, IOException {
     final String header = request.getHeader(HttpHeaders.AUTHORIZATION);
     if (header == null || !header.startsWith("Bearer ")) {

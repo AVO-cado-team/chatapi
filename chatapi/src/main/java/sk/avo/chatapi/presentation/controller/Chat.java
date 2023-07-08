@@ -36,17 +36,16 @@ public class Chat {
         Date lastMessageTime;
         try {
             chat = applicationService.createChat(createChatRequest.getName(), userEntity.getId());
-            lastMessageTime = applicationService.getChatLastMessageTimestamp(chat.getId(), userEntity.getId());
+//            lastMessageTime = applicationService.getChatLastMessageTimestamp(chat.getId(), userEntity.getId());
         } catch (ChatNotFoundException e) {
             return ResponseEntity.notFound().build();
-        } catch (UserIsNotInTheChatException e) {
-            return ResponseEntity.badRequest().build();
         }
         return ResponseEntity.created(null).body(
                 new ChatDetails() {{
                     setChatId(chat.getId());
                     setName(chat.getName());
-                    setLastMessageTime(lastMessageTime.getTime());
+//                    setLastMessageTime(lastMessageTime.getTime());
+                    setLastMessageTime(0L);
                 }}
         );
     }

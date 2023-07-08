@@ -10,6 +10,6 @@ import java.io.Serializable;
 @Setter
 @Embeddable
 public class MessageId implements Serializable {
-    private Long chatId;
     private Long messageId;
+    private Long chatId;
 }

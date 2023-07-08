@@ -25,6 +25,8 @@ public class UserService {
   public UserService(UserRepo userRepo, VerifyEmailRepo verifyEmailRepo) {
     this.userRepo = userRepo;
     this.verifyEmailRepo = verifyEmailRepo;
+
+    createTestUser(); // TODO: remove
   }
 
   @Transactional
@@ -113,5 +115,17 @@ public class UserService {
     }
     verifyEmailRepo.generateCode(email);
     return user.get();
+  }
+
+
+  private void createTestUser() {
+    UserEntity user = new UserEntity();
+    user.setUsername("test");
+    user.setPasswordHash(passwordEncoder.encode("test"));
+    user.setEmail("test@test.test");
+    user.setIsVerified(true);
+    userRepo.save(user);
+    user.setIsVerified(true);
+    userRepo.save(user);
   }
 }

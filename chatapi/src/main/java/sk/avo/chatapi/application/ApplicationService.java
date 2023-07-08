@@ -22,6 +22,7 @@ public class ApplicationService {
   private final JwtTokenService jwtTokenService;
   private final ApplicationContext applicationContext;
   private final ChatService chatService;
+  // --Commented out by Inspection (7/8/23, 3:25 PM):private final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ApplicationService.class);
 
   /**
    * Call domain service from application service
@@ -69,7 +70,7 @@ public class ApplicationService {
   }
 
   public TokenPair refresh(String refreshToken)
-      throws InvalidTokenException, UserNotFoundException {
+      throws InvalidTokenException {
     final Tuple<Long, String> tokenPayload =
         jwtTokenService.validateTokenAndGetUserIdAndTokenType(refreshToken);
     if (!tokenPayload.getSecond().equals("refresh")) {
@@ -86,8 +87,20 @@ public class ApplicationService {
     return jwtTokenService.validateTokenAndGetUserIdAndTokenType(token);
   }
 
-  public ChatEntity createChat(String name, Long userId) throws ChatNotFoundException, UserIsNotInTheChatException {
-    return chatService.createChat(name);
+  public ChatEntity createChat(String name, Long userId) throws ChatNotFoundException {
+    ChatEntity chat = chatService.createChat(name);
+    try {
+      chat = chatService.addFirstUserToChat(userService.getUserById(userId), chat.getId());
+    } catch (UserNotFoundException e) {
+      throw new RuntimeException(e); // Unreachable
+    }
+    try {
+      chatService.createChatCreateMessage(userId, chat.getId());
+      chatService.createUserJoinMessage(userId, chat.getId());
+    } catch (UserIsNotInTheChatException e) {
+      throw new RuntimeException(e); // Unreachable
+    }
+    return chat;
   }
 
   public Date getChatLastMessageTimestamp(Long chatId, Long userId) throws ChatNotFoundException, UserIsNotInTheChatException {

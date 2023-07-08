@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class Tuple<X, Y> {
-  private final X first;
-  private final Y second;
+public class Tuple <X, Y> {
+  private X first;
+  private Y second;
 }
