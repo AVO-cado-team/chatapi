@@ -10,6 +10,4 @@ import java.util.Set;
 public class ChatDetails {
     private Long chatId;
     private String name;
-    private Long lastMessageTime;
-    private Set<ChatUser> users = Set.of();
 }

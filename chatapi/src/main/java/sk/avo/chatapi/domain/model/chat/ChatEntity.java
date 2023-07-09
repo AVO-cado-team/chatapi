@@ -37,13 +37,4 @@ public class ChatEntity {
   public void removeUser(UserEntity user) {
       this.users.remove(user);
   }
-
-
-//  @PrePersist
-//  private void onCreate() {}
-//
-//  @PreUpdate
-//  private void onUpdate() {}
-//
-//  public ChatEntity() {}
 }

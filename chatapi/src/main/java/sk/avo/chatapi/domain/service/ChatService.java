@@ -1,6 +1,7 @@
 package sk.avo.chatapi.domain.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import sk.avo.chatapi.domain.model.chat.*;
 import sk.avo.chatapi.domain.model.user.UserEntity;
@@ -8,16 +9,9 @@ import sk.avo.chatapi.domain.repository.ChatRepo;
 import sk.avo.chatapi.domain.repository.MessageRepo;
 import sk.avo.chatapi.domain.repository.UserRepo;
 import sk.avo.chatapi.domain.shared.Tuple;
-
 import java.util.Date;
 import java.util.Set;
 
-/**
- * Chat Service
- * is used for chat management.
- * It can CRUD chats and messages.
- * If chat has no users, it will be deleted automatically.
- */
 
 @Service
 public class ChatService {
@@ -56,17 +50,15 @@ public class ChatService {
     chatRepo.save(chat);
   }
 
-  public void removeUserFromChat(Long userId, long chatId) throws ChatNotFoundException, UserIsNotInTheChatException {
+  public ChatEntity removeUserFromChat(Long userId, long chatId) throws ChatNotFoundException, UserIsNotInTheChatException {
     Tuple<ChatEntity, UserEntity> tuple = getChatAndUserFromChat(chatId, userId);
     ChatEntity chat = tuple.getFirst();
     UserEntity user = tuple.getSecond();
     chat.getUsers().remove(user);
-    chat = chatRepo.save(chat);
-    createUserLeaveMessage(userId, chatId);
-    if (chat.getUsers().isEmpty()) chatRepo.delete(chat);
+    return chatRepo.save(chat);
   }
 
-  private MessageEntity createMessage(Long userId, Long chatId, String text, Long replyToMessageId, MessageType type, String content)
+  public MessageEntity createMessage(Long userId, Long chatId, String text, Long replyToMessageId, MessageType type, String content)
           throws ChatNotFoundException, UserIsNotInTheChatException {
     Tuple<ChatEntity, UserEntity> tuple = getChatAndUserFromChat(chatId, userId);
     MessageEntity replyToMessage = messageRepo.findMessageByChatIdAndMessageId(chatId, replyToMessageId).orElse(null);
@@ -80,31 +72,6 @@ public class ChatService {
     message.setType(type);
     message.setContent(content);
     return messageRepo.save(message);
-  }
-
-  public MessageEntity createChatCreateMessage(Long userId, Long chatId)
-          throws ChatNotFoundException, UserIsNotInTheChatException {
-    return createMessage(userId, chatId, null, null, MessageType.CHAT_CREATE, null);
-  }
-
-  public MessageEntity createUserJoinMessage(Long userId, Long chatId)
-          throws ChatNotFoundException, UserIsNotInTheChatException {
-    return createMessage(userId, chatId, null, null, MessageType.USER_JOIN, null);
-  }
-
-  public MessageEntity createUserLeaveMessage(Long userId, Long chatId)
-          throws ChatNotFoundException, UserIsNotInTheChatException {
-    return createMessage(userId, chatId, null, null, MessageType.USER_LEAVE, null);
-  }
-
-  public MessageEntity createTextMessage(Long userId, Long chatId, String text, Long replyToMessageId)
-          throws ChatNotFoundException, UserIsNotInTheChatException {
-    return createMessage(userId, chatId, text, replyToMessageId, MessageType.TEXT, null);
-  }
-
-  public MessageEntity createPhotoMessage(Long userId, Long chatId, String text, Long replyToMessageId, String content)
-          throws ChatNotFoundException, UserIsNotInTheChatException {
-    return createMessage(userId, chatId, text, replyToMessageId, MessageType.PHOTO, content);
   }
 
   public ChatEntity getChat(Long id) throws ChatNotFoundException {
@@ -130,6 +97,16 @@ public class ChatService {
 
   public Set<ChatEntity> getUserChats(Long userId) {
     return chatRepo.findChatsByUserId(userId);
+  }
+  public Set<UserEntity> getChatUsers(Long chatId, Long userId) throws ChatNotFoundException, UserIsNotInTheChatException {
+    getChatAndUserFromChat(chatId, userId);
+    return chatRepo.findById(chatId).orElseThrow(ChatNotFoundException::new).getUsers();
+  }
+
+  public Set<MessageEntity> getChatMessages(Long chatId, Long userId, Integer page, Integer pageSize)
+          throws ChatNotFoundException, UserIsNotInTheChatException {
+    getChatAndUserFromChat(chatId, userId);
+    return messageRepo.findMessagesByChatId(chatId, PageRequest.of(page, pageSize));
   }
 
   public Tuple<ChatEntity, UserEntity> getChatAndUserFromChat(Long chatId, Long userId)

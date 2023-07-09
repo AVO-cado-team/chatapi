@@ -5,18 +5,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import sk.avo.chatapi.application.ApplicationService;
-import sk.avo.chatapi.application.dto.ChatAndLastMessageTimestamp;
-import sk.avo.chatapi.domain.model.chat.ChatEntity;
-import sk.avo.chatapi.domain.model.chat.ChatNotFoundException;
-import sk.avo.chatapi.domain.model.chat.UserIsAlreadyInTheChatException;
-import sk.avo.chatapi.domain.model.chat.UserIsNotInTheChatException;
+import sk.avo.chatapi.domain.model.chat.*;
 import sk.avo.chatapi.domain.model.user.UserEntity;
 import sk.avo.chatapi.domain.model.user.UserNotFoundException;
-import sk.avo.chatapi.presentation.dto.chat.AddUserToChatRequest;
-import sk.avo.chatapi.presentation.dto.chat.ChatDetails;
-import sk.avo.chatapi.presentation.dto.chat.CreateChatRequest;
+import sk.avo.chatapi.presentation.dto.chat.*;
 
-import java.util.Date;
 import java.util.Set;
 
 @RestController
@@ -35,20 +28,15 @@ public class Chat {
   ) {
     UserEntity userEntity = (UserEntity) authentication.getPrincipal();
     ChatEntity chat;
-    Date lastMessageTime;
     try {
       chat = applicationService.createChat(createChatRequest.getName(), userEntity.getId());
-      lastMessageTime = applicationService.getChatLastMessageTimestamp(chat.getId(), userEntity.getId());
     } catch (ChatNotFoundException e) {
       return ResponseEntity.notFound().build();
-    } catch (UserIsNotInTheChatException e) {
-      return ResponseEntity.badRequest().build();
     }
     return ResponseEntity.created(null).body(
             new ChatDetails() {{
               setChatId(chat.getId());
               setName(chat.getName());
-              setLastMessageTime(lastMessageTime.getTime());
             }}
     );
   }
@@ -61,18 +49,9 @@ public class Chat {
     Set<ChatEntity> chatEntities = applicationService.getUserChats(userEntity.getId());
     Set<ChatDetails> chatDetails = new java.util.HashSet<>();
     for (ChatEntity chatEntity : chatEntities) {
-      Date lastMessageTime;
-      try {
-        lastMessageTime = applicationService.getChatLastMessageTimestamp(chatEntity.getId(), userEntity.getId());
-      } catch (ChatNotFoundException e) {
-        return ResponseEntity.notFound().build();
-      } catch (UserIsNotInTheChatException e) {
-        return ResponseEntity.badRequest().build();
-      }
       chatDetails.add(new ChatDetails() {{
         setChatId(chatEntity.getId());
         setName(chatEntity.getName());
-        setLastMessageTime(lastMessageTime.getTime());
       }});
     }
     return ResponseEntity.ok(chatDetails);
@@ -84,9 +63,9 @@ public class Chat {
           Authentication authentication
   ) {
     UserEntity userEntity = (UserEntity) authentication.getPrincipal();
-    ChatAndLastMessageTimestamp chatAndLastMessageTimestamp;
+    ChatEntity chat;
     try {
-      chatAndLastMessageTimestamp = applicationService.getChatAndLastMessageTimestamp(chatId, userEntity.getId());
+      chat = applicationService.getChat(chatId, userEntity.getId());
     } catch (ChatNotFoundException e) {
       return ResponseEntity.notFound().build();
     } catch (UserIsNotInTheChatException e) {
@@ -95,20 +74,19 @@ public class Chat {
     return ResponseEntity.ok(
             new ChatDetails() {{
               setChatId(chatId);
-              setName(chatAndLastMessageTimestamp.getChat().getName());
-              setLastMessageTime(chatAndLastMessageTimestamp.getLastMessageTimestamp().getTime());
+              setName(chat.getName());
             }}
     );
   }
 
-  @PatchMapping("/{chatId}")
-  public ResponseEntity<String> updateChat(
-          @PathVariable("chatId") Long chatId,
-          Authentication authentication
-  ) {
-    UserEntity userEntity = (UserEntity) authentication.getPrincipal();
-    return ResponseEntity.internalServerError().body("Not implemented yet.");
-  }
+//  @PatchMapping("/{chatId}")
+//  public ResponseEntity<String> updateChat(
+//          @PathVariable("chatId") Long chatId,
+//          Authentication authentication
+//  ) {
+//    UserEntity userEntity = (UserEntity) authentication.getPrincipal();
+//    return ResponseEntity.internalServerError().body("Not implemented yet.");
+//  }
 
   @DeleteMapping("/{chatId}")
   public ResponseEntity<Object> deleteChat(
@@ -135,9 +113,9 @@ public class Chat {
     UserEntity userEntity = (UserEntity) authentication.getPrincipal();
     try {
       applicationService.addUserToChat(chatId, userEntity.getId(), addUserToChatRequest.getUsername());
-    } catch (ChatNotFoundException e) {
+    } catch (ChatNotFoundException | UserNotFoundException e) {
       return ResponseEntity.notFound().build();
-    } catch (UserIsNotInTheChatException | UserNotFoundException e) {
+    } catch (UserIsNotInTheChatException e) {
       return ResponseEntity.badRequest().build();
     } catch (UserIsAlreadyInTheChatException e) {
       return ResponseEntity.status(HttpStatus.CONFLICT).build();
@@ -146,40 +124,84 @@ public class Chat {
   }
 
   @GetMapping("/{chatId}/users")
-  public void getChatUsers(
+  public ResponseEntity<Set<ChatUser>> getChatUsers(
           @PathVariable("chatId") Long chatId,
           Authentication authentication
   ) {
     UserEntity userEntity = (UserEntity) authentication.getPrincipal();
-    // TODO
+    Set<ChatUser> chatUsers;
+    try {
+      chatUsers = applicationService.getChatUsers(chatId, userEntity.getId()).stream().map(
+              chatUserEntity -> new ChatUser() {{
+                setUserId(chatUserEntity.getId());
+                setUsername(chatUserEntity.getUsername());
+              }}
+      ).collect(java.util.stream.Collectors.toSet());
+    } catch (ChatNotFoundException e) {
+      return ResponseEntity.notFound().build();
+    } catch (UserIsNotInTheChatException e) {
+      return ResponseEntity.badRequest().build();
+    }
+    return ResponseEntity.ok(chatUsers);
   }
 
   @PostMapping("/{chatId}/messages")
-  public void createMessage(
+  public ResponseEntity<Object> createMessage(
           @PathVariable("chatId") Long chatId,
+          @RequestBody NewMessageRequest newMessageRequest,
           Authentication authentication
   ) {
     UserEntity userEntity = (UserEntity) authentication.getPrincipal();
-    // TODO
+    MessageEntity messageEntity;
+    switch (newMessageRequest.getMessageType()) {
+      case "TEXT" -> {
+        try {
+          messageEntity = applicationService.sendTextMessage(
+                  chatId, userEntity.getId(), newMessageRequest.getText(),
+                  newMessageRequest.getReplyTo());
+        } catch (ChatNotFoundException e) {
+          return ResponseEntity.notFound().build();
+        } catch (UserIsNotInTheChatException e) {
+          return ResponseEntity.badRequest().build();
+        }
+      }
+      default -> {
+        return ResponseEntity.badRequest().build();
+      }
+    }
+    return ResponseEntity.ok(messageEntity);
   }
 
   @GetMapping("/{chatId}/messages")
-  public void getMessages(
+  public ResponseEntity<Object> getMessages(
           @PathVariable("chatId") Long chatId,
           @RequestParam("page") Integer page,
           Authentication authentication
   ) {
     UserEntity userEntity = (UserEntity) authentication.getPrincipal();
-    // TODO
+    try {
+      return ResponseEntity.ok(applicationService.getMessages(chatId, userEntity.getId(), page));
+    } catch (ChatNotFoundException e) {
+      return ResponseEntity.notFound().build();
+    } catch (UserIsNotInTheChatException e) {
+      return ResponseEntity.badRequest().build();
+    }
   }
 
   @DeleteMapping("/{chatId}/messages/{messageId}")
-  public void deleteMessage(
+  public ResponseEntity<Object> deleteMessage(
           @PathVariable("chatId") Long chatId,
           @PathVariable("messageId") Long messageId,
           Authentication authentication
   ) {
     UserEntity userEntity = (UserEntity) authentication.getPrincipal();
-    // TODO
+    try {
+      applicationService.deleteMessage(chatId, userEntity.getId(), messageId);
+    } catch (ChatNotFoundException | MessageNotFoundException e) {
+      return ResponseEntity.notFound().build();
+    } catch (UserIsNotInTheChatException e) {
+      return ResponseEntity.badRequest().build();
+    }
+    return ResponseEntity.ok().build();
   }
 }
