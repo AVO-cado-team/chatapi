@@ -13,6 +13,7 @@ import sk.avo.chatapi.domain.service.ChatService;
 import sk.avo.chatapi.domain.service.JwtTokenService;
 import sk.avo.chatapi.domain.service.UserService;
 import sk.avo.chatapi.domain.shared.Tuple;
+import sk.avo.chatapi.domain.model.security.TokenType;
 
 import java.util.Date;
 import java.util.Set;
@@ -23,7 +24,6 @@ public class ApplicationService {
   private final JwtTokenService jwtTokenService;
   private final ApplicationContext applicationContext;
   private final ChatService chatService;
-  // --Commented out by Inspection (7/8/23, 3:25 PM):private final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ApplicationService.class);
 
   /**
    * Call domain service from application service
@@ -35,15 +35,18 @@ public class ApplicationService {
     return applicationContext.getBean(domainServiceInterface);
   }
 
-  public ApplicationService(UserService userService, JwtTokenService jwtTokenService, ApplicationContext applicationContext, ChatService chatService) {
+  public ApplicationService(
+          UserService userService,
+          JwtTokenService jwtTokenService,
+          ApplicationContext applicationContext,
+          ChatService chatService) {
     this.userService = userService;
     this.jwtTokenService = jwtTokenService;
     this.applicationContext = applicationContext;
     this.chatService = chatService;
   }
 
-  public TokenPair signup(String username, String password, String email)
-      throws UserAlreadyExistsException {
+  public TokenPair signup(String username, String password, String email) throws UserAlreadyExistsException {
     UserEntity userEntity = userService.createUser(username, password, email);
     TokenPair tokenPair = new TokenPair();
     tokenPair.setAccessToken(jwtTokenService.generateAccessToken(userEntity.getId()));
@@ -51,13 +54,11 @@ public class ApplicationService {
     return tokenPair;
   }
 
-  public UserEntity verifyEmail(String email, String code)
-      throws UserNotFoundException, UserEmailVerifyException {
+  public UserEntity verifyEmail(String email, String code) throws UserNotFoundException, UserEmailVerifyException {
     return userService.verifyEmail(email, code);
   }
 
-  public UserEntity regenerateEmailVerificationCode(String email)
-      throws UserNotFoundException, UserEmailIsAlreadyVerifiedException {
+  public UserEntity regenerateEmailVerificationCode(String email) throws UserNotFoundException, UserEmailIsAlreadyVerifiedException {
     return userService.regenerateEmailVerificationCode(email);
   }
 
@@ -70,11 +71,9 @@ public class ApplicationService {
     return tokenPair;
   }
 
-  public TokenPair refresh(String refreshToken)
-      throws InvalidTokenException {
-    final Tuple<Long, String> tokenPayload =
-        jwtTokenService.validateTokenAndGetUserIdAndTokenType(refreshToken);
-    if (!tokenPayload.getSecond().equals("refresh")) {
+  public TokenPair refresh(String refreshToken) throws InvalidTokenException {
+    final Tuple<Long, String> tokenPayload = jwtTokenService.validateTokenAndGetUserIdAndTokenType(refreshToken);
+    if (!tokenPayload.getSecond().equals(TokenType.REFRESH)) {
       throw new InvalidTokenException();
     }
     final TokenPair tokenPair = new TokenPair();
@@ -83,8 +82,7 @@ public class ApplicationService {
     return tokenPair;
   }
 
-  public Tuple<Long, String> validateTokenAndGetUserIdAndTokenType(final String token)
-      throws InvalidTokenException {
+  public Tuple<Long, String> validateTokenAndGetUserIdAndTokenType(final String token) throws InvalidTokenException {
     return jwtTokenService.validateTokenAndGetUserIdAndTokenType(token);
   }
 

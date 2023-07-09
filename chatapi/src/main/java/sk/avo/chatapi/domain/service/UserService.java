@@ -45,7 +45,6 @@ public class UserService {
     user.setUsername(username);
     user.setPasswordHash(passwordEncoder.encode(password));
     user.setEmail(email);
-
     verifyEmailRepo.addEmail(user.getEmail());
     verifyEmailRepo.generateCode(user.getEmail());
     user = userRepo.save(user);
@@ -53,15 +52,10 @@ public class UserService {
   }
 
   @Transactional
-  public UserEntity verifyEmail(String email, String code)
-      throws UserNotFoundException, UserEmailVerifyException {
+  public UserEntity verifyEmail(String email, String code) throws UserNotFoundException, UserEmailVerifyException {
     Optional<UserEntity> user = userRepo.findByEmail(email);
-    if (user.isEmpty()) {
-      throw new UserNotFoundException();
-    }
-    if (!verifyEmailRepo.verifyEmail(email, code)) {
-      throw new UserEmailVerifyException();
-    }
+    if (user.isEmpty()) throw new UserNotFoundException();
+    if (!verifyEmailRepo.verifyEmail(email, code)) throw new UserEmailVerifyException();
     user.get().setIsVerified(true);
     userRepo.save(user.get());
     return user.get();
@@ -69,50 +63,34 @@ public class UserService {
 
   @Transactional
   public UserEntity getUserByUsernameAndPassword(String username, String password)
-      throws UserNotFoundException, UserIsNotVerifiedException {
+          throws UserNotFoundException, UserIsNotVerifiedException {
     Optional<UserEntity> user = userRepo.findByUsername(username);
-    if (user.isEmpty()) {
-      throw new UserNotFoundException();
-    }
-    if (!passwordEncoder.matches(password, user.get().getPasswordHash())) {
-      throw new UserNotFoundException();
-    }
-    if (!user.get().getIsVerified()) {
-      throw new UserIsNotVerifiedException();
-    }
+    if (user.isEmpty()) throw new UserNotFoundException();
+    if (!passwordEncoder.matches(password, user.get().getPasswordHash())) throw new UserNotFoundException();
+    if (!user.get().getIsVerified()) throw new UserIsNotVerifiedException();
     return user.get();
   }
 
   @Transactional
   public UserEntity getUserByUsername(String username) throws UserNotFoundException {
     Optional<UserEntity> user = userRepo.findByUsername(username);
-    if (user.isEmpty()) {
-      throw new UserNotFoundException();
-    }
+    if (user.isEmpty()) throw new UserNotFoundException();
     return user.get();
   }
 
   @Transactional
   public UserEntity getUserById(Long id) throws UserNotFoundException {
     Optional<UserEntity> user = userRepo.findById(id);
-    if (user.isEmpty()) {
-      throw new UserNotFoundException();
-    }
+    if (user.isEmpty()) throw new UserNotFoundException();
     return user.get();
   }
 
   public UserEntity regenerateEmailVerificationCode(String email)
       throws UserNotFoundException, UserEmailIsAlreadyVerifiedException {
     Optional<UserEntity> user = userRepo.findByEmail(email);
-    if (user.isEmpty()) {
-      throw new UserNotFoundException();
-    }
-    if (user.get().getIsVerified()) {
-      throw new UserEmailIsAlreadyVerifiedException();
-    }
-    if (!verifyEmailRepo.emailExists(email)) {
-      verifyEmailRepo.addEmail(email);
-    }
+    if (user.isEmpty()) throw new UserNotFoundException();
+    if (user.get().getIsVerified()) throw new UserEmailIsAlreadyVerifiedException();
+    if (!verifyEmailRepo.emailExists(email)) verifyEmailRepo.addEmail(email);
     verifyEmailRepo.generateCode(email);
     return user.get();
   }

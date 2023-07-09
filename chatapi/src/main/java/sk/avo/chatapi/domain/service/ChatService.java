@@ -49,10 +49,8 @@ public class ChatService {
           throws ChatNotFoundException, UserIsNotInTheChatException, UserIsAlreadyInTheChatException {
     getChatAndUserFromChat(chatId, userId);
     ChatEntity chat = chatRepo.findById(chatId).orElseThrow(ChatNotFoundException::new);
-//    find user
-    if (chat.getUsers().stream().anyMatch(user -> user.getId().equals(newUserId))) {
+    if (chat.getUsers().stream().anyMatch(user -> user.getId().equals(newUserId)))
       throw new UserIsAlreadyInTheChatException();
-    }
     UserEntity user = userRepo.findById(newUserId).orElseThrow();
     chat.getUsers().add(user);
     chatRepo.save(chat);
@@ -68,13 +66,12 @@ public class ChatService {
     if (chat.getUsers().isEmpty()) chatRepo.delete(chat);
   }
 
-  public MessageEntity createMessage(Long userId, Long chatId, String text, Long replyToMessageId, MessageType type, String content)
+  private MessageEntity createMessage(Long userId, Long chatId, String text, Long replyToMessageId, MessageType type, String content)
           throws ChatNotFoundException, UserIsNotInTheChatException {
     Tuple<ChatEntity, UserEntity> tuple = getChatAndUserFromChat(chatId, userId);
     MessageEntity replyToMessage = messageRepo.findMessageByChatIdAndMessageId(chatId, replyToMessageId).orElse(null);
     UserEntity user = tuple.getSecond();
     ChatEntity chat = tuple.getFirst();
-
     MessageEntity message = new MessageEntity();
     message.setChatId(chat.getId());
     message.setSender(user);

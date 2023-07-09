@@ -12,38 +12,45 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 // import org.springframework.security.core.userdetails.UserDetails;
 import sk.avo.chatapi.domain.model.security.InvalidTokenException;
+import sk.avo.chatapi.domain.model.security.TokenType;
 import sk.avo.chatapi.domain.shared.Tuple;
 
 @Service
 public class JwtTokenService {
-  private static final Duration JWT_ACCESS_TOKEN_VALIDITY = Duration.ofMinutes(20);
-  private static final Duration JWT_REFRESH_TOKEN_VALIDITY = Duration.ofDays(30);
   private static final Logger logger = LoggerFactory.getLogger(JwtTokenService.class);
   private final Algorithm hmac512;
   private final JWTVerifier verifier;
+  private final Duration jwtAccessTokenValidity;
+  private final Duration jwtRefreshTokenValidity;
 
-  public JwtTokenService(@Value("${jwt.secret}") final String secret) {
+  public JwtTokenService(
+          @Value("${jwt.secret}") final String secret,
+          @Value("${jwt.validity.access-token}") final Duration accessTokenValidity,
+          @Value("${jwt.validity.refresh-token}") final Duration refreshTokenValidity
+          ) {
     this.hmac512 = Algorithm.HMAC512(secret);
     this.verifier = JWT.require(this.hmac512).build();
+    this.jwtAccessTokenValidity = accessTokenValidity;
+    this.jwtRefreshTokenValidity = refreshTokenValidity;
   }
 
   public String generateAccessToken(final Long userId) {
     final Instant now = Instant.now();
     return JWT.create()
-        .withSubject(userId.toString() + ":access")
+        .withSubject(userId.toString() + ":" + TokenType.ACCESS)
         .withIssuer("app")
         .withIssuedAt(now)
-        .withExpiresAt(now.plusMillis(JWT_ACCESS_TOKEN_VALIDITY.toMillis()))
+        .withExpiresAt(now.plusMillis(jwtAccessTokenValidity.toMillis()))
         .sign(this.hmac512);
   }
 
   public String generateRefreshToken(final Long userId) {
     final Instant now = Instant.now();
     return JWT.create()
-        .withSubject(userId.toString() + ":refresh")
+        .withSubject(userId.toString() + ":" + TokenType.REFRESH)
         .withIssuer("app")
         .withIssuedAt(now)
-        .withExpiresAt(now.plusMillis(JWT_REFRESH_TOKEN_VALIDITY.toMillis()))
+        .withExpiresAt(now.plusMillis(jwtRefreshTokenValidity.toMillis()))
         .sign(this.hmac512);
   }
 
@@ -63,10 +70,10 @@ public class JwtTokenService {
   }
 
   public Duration getJwtAccessTokenValidity() {
-    return JWT_ACCESS_TOKEN_VALIDITY;
+    return jwtAccessTokenValidity;
   }
 
   public Duration getJwtRefreshTokenValidity() {
-    return JWT_REFRESH_TOKEN_VALIDITY;
+    return jwtRefreshTokenValidity;
   }
 }

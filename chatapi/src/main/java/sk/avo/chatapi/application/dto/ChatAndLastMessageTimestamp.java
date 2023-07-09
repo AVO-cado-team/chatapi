@@ -5,6 +5,6 @@ import lombok.Data;
 import java.util.Date;
 
 @Data public class ChatAndLastMessageTimestamp {
-    private ChatEntity chat;
-    private Date lastMessageTimestamp;
+  private ChatEntity chat;
+  private Date lastMessageTimestamp;
 }
