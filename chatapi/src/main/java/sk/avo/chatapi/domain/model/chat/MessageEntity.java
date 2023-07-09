@@ -11,7 +11,7 @@ import sk.avo.chatapi.domain.model.user.UserEntity;
 @Getter
 @Setter
 @Table(name = "messages")
-@IdClass(MessageId.class)
+@IdClass(MessageEntityId.class)
 public class MessageEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE)

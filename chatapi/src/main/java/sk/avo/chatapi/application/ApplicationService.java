@@ -1,5 +1,6 @@
 package sk.avo.chatapi.application;
 
+import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
@@ -47,10 +48,11 @@ public class ApplicationService {
   }
 
   public TokenPair signup(String username, String password, String email) throws UserAlreadyExistsException {
-    UserEntity userEntity = userService.createUser(username, password, email);
+    UserEntity user = userService.createUser(username, password, email);
     TokenPair tokenPair = new TokenPair();
-    tokenPair.setAccessToken(jwtTokenService.generateAccessToken(userEntity.getId()));
-    tokenPair.setRefreshToken(jwtTokenService.generateRefreshToken(userEntity.getId()));
+    UserId userId = new UserId(user.getId());
+    tokenPair.setAccessToken(jwtTokenService.generateAccessToken(userId));
+    tokenPair.setRefreshToken(jwtTokenService.generateRefreshToken(userId));
     return tokenPair;
   }
 
@@ -66,19 +68,20 @@ public class ApplicationService {
       throws UserNotFoundException, UserIsNotVerifiedException {
     final UserEntity user = userService.getUserByUsernameAndPassword(username, password);
     final TokenPair tokenPair = new TokenPair();
-    tokenPair.setAccessToken(jwtTokenService.generateAccessToken(user.getId()));
-    tokenPair.setRefreshToken(jwtTokenService.generateRefreshToken(user.getId()));
+    final UserId userId = new UserId(user.getId());
+    tokenPair.setAccessToken(jwtTokenService.generateAccessToken(userId));
+    tokenPair.setRefreshToken(jwtTokenService.generateRefreshToken(userId));
     return tokenPair;
   }
 
   public TokenPair refresh(String refreshToken) throws InvalidTokenException {
     final Tuple<Long, String> tokenPayload = jwtTokenService.validateTokenAndGetUserIdAndTokenType(refreshToken);
-    if (!tokenPayload.getSecond().equals(TokenType.REFRESH)) {
+    if (!tokenPayload.getSecond().equals(TokenType.REFRESH))
       throw new InvalidTokenException();
-    }
     final TokenPair tokenPair = new TokenPair();
-    tokenPair.setAccessToken(jwtTokenService.generateAccessToken(tokenPayload.getFirst()));
-    tokenPair.setRefreshToken(jwtTokenService.generateRefreshToken(tokenPayload.getFirst()));
+    final UserId userId = new UserId(tokenPayload.getFirst());
+    tokenPair.setAccessToken(jwtTokenService.generateAccessToken(userId));
+    tokenPair.setRefreshToken(jwtTokenService.generateRefreshToken(userId));
     return tokenPair;
   }
 
@@ -88,78 +91,79 @@ public class ApplicationService {
 
   private MessageEntity sendChatCreateMessage(Long userId, Long chatId)
           throws ChatNotFoundException, UserIsNotInTheChatException {
-    return chatService.createMessage(userId, chatId, null, null, MessageType.CHAT_CREATE, null);
+    return chatService.createMessage(new UserId(userId), new ChatId(chatId), null, null, MessageType.CHAT_CREATE, null);
   }
 
   private MessageEntity sendUserJoinMessage(Long userId, Long chatId)
           throws ChatNotFoundException, UserIsNotInTheChatException {
-    return chatService.createMessage(userId, chatId, null, null, MessageType.USER_JOIN, null);
+    return chatService.createMessage(new UserId(userId), new ChatId(chatId), null, null, MessageType.USER_JOIN, null);
   }
 
   private MessageEntity sendUserLeaveMessage(Long userId, Long chatId)
           throws ChatNotFoundException, UserIsNotInTheChatException {
-    return chatService.createMessage(userId, chatId, null, null, MessageType.USER_LEAVE, null);
+    return chatService.createMessage(new UserId(userId), new ChatId(chatId), null, null, MessageType.USER_LEAVE, null);
   }
 
   public MessageEntity sendTextMessage(Long userId, Long chatId, String text, Long replyToMessageId)
           throws ChatNotFoundException, UserIsNotInTheChatException {
-    return chatService.createMessage(userId, chatId, text, replyToMessageId, MessageType.TEXT, null);
+    return chatService.createMessage(new UserId(userId), new ChatId(chatId), text, new MessageId(replyToMessageId), MessageType.TEXT, null);
   }
 
   public MessageEntity sendPhotoMessage(Long userId, Long chatId, String text, Long replyToMessageId, String content)
           throws ChatNotFoundException, UserIsNotInTheChatException {
-    return chatService.createMessage(userId, chatId, text, replyToMessageId, MessageType.PHOTO, content);
+    return chatService.createMessage(new UserId(userId), new ChatId(chatId), text, new MessageId(replyToMessageId), MessageType.PHOTO, content);
   }
 
   public ChatEntity createChat(String name, Long userId) throws ChatNotFoundException {
     ChatEntity chat = chatService.createChat(name);
     try {
-      chat = chatService.addFirstUserToChat(userService.getUserById(userId), chat.getId());
+      chatService.addUserToChat(new ChatId(chat.getId()), new UserId(userId));
+      chat = chatService.getChatAndUserFromChat(new ChatId(chat.getId()), new UserId(userId)).getFirst();
       sendChatCreateMessage(userId, chat.getId());
       sendUserJoinMessage(userId, chat.getId());
-    } catch (UserNotFoundException | UserIsNotInTheChatException e) {
+    } catch (UserIsNotInTheChatException e) {
       throw new RuntimeException(e); // Unreachable
     }
     return chat;
   }
 
   public Set<ChatEntity> getUserChats(Long userId) {
-    return chatService.getUserChats(userId);
+    return chatService.getUserChats(new UserId(userId));
   }
 
   public Set<UserEntity> getChatUsers(Long chatId, Long userId) throws ChatNotFoundException, UserIsNotInTheChatException {
-    return chatService.getChatUsers(chatId, userId);
+    return chatService.getChatUsers(new ChatId(chatId), new UserId(userId));
   }
 
   public ChatEntity getChat(Long chatId, Long userId) throws ChatNotFoundException, UserIsNotInTheChatException {
-    return chatService.getChatAndUserFromChat(chatId, userId).getFirst();
+    return chatService.getChatAndUserFromChat(new ChatId(chatId), new UserId(userId)).getFirst();
   }
 
   public void deleteChat(Long chatId, Long userId) throws ChatNotFoundException, UserIsNotInTheChatException {
-    chatService.deleteChat(chatId, userId);
-    ChatEntity chat = chatService.getChatAndUserFromChat(chatId, userId).getFirst();
+    chatService.deleteChat(new ChatId(chatId), new UserId(userId));
+    ChatEntity chat = chatService.getChatAndUserFromChat(new ChatId(chatId), new UserId(userId)).getFirst();
   }
 
   public void addUserToChat(Long chatId, Long userId, String newUserUsername)
           throws ChatNotFoundException, UserIsNotInTheChatException, UserNotFoundException, UserIsAlreadyInTheChatException {
     Long newUserId = userService.getUserByUsername(newUserUsername).getId();
-    chatService.addUserToChat(chatId, userId, newUserId);
+    chatService.addUserToChat(new ChatId(chatId), new UserId(userId), new UserId(newUserId));
     sendUserJoinMessage(newUserId, chatId);
   }
 
   public void leaveChat(Long chatId, Long userId) throws ChatNotFoundException, UserIsNotInTheChatException {
     sendUserLeaveMessage(userId, chatId);
-    ChatEntity chat = chatService.removeUserFromChat(chatId, userId);
+    ChatEntity chat = chatService.removeUserFromChat(new UserId(userId), new ChatId(chatId));
     if (chat.getUsers().isEmpty()) {
-      chatService.deleteChat(chatId, userId);
+      chatService.deleteChat(new ChatId(chatId), new UserId(userId));
     }
   }
 
-  public Set<MessageEntity> getMessages(Long chatId, Long id, Integer page) throws ChatNotFoundException, UserIsNotInTheChatException {
-    return chatService.getChatMessages(chatId, id, page, pageSize);
+  public Set<MessageEntity> getMessages(Long chatId, Long userId, Integer page) throws ChatNotFoundException, UserIsNotInTheChatException {
+    return chatService.getChatMessages(new ChatId(chatId), new UserId(userId), page, pageSize);
   }
 
-  public void deleteMessage(Long chatId, Long id, Long messageId) throws MessageNotFoundException, ChatNotFoundException, UserIsNotInTheChatException {
-    chatService.deleteMessage(chatId, id, messageId);
+  public void deleteMessage(Long chatId, Long userId, Long messageId) throws MessageNotFoundException, ChatNotFoundException, UserIsNotInTheChatException {
+    chatService.deleteMessage(new ChatId(chatId), new MessageId(messageId), new UserId(userId));
   }
 }
