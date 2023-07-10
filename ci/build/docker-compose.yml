@@ -17,7 +17,7 @@ services:
     image: chatapi-image
     container_name: chatapi
     ports:
-      - 8080:8080
+      - "8080:8080"
     depends_on:
       - postgres
     env_file:
