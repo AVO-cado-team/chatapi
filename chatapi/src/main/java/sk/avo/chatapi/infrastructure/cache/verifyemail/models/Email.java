@@ -7,7 +7,7 @@ import sk.avo.chatapi.infrastructure.cache.verifyemail.utils.RandomCode;
 
 public class Email {
   private static final int CODE_LENGTH = 6;
-  private final Logger logger = LoggerFactory.getLogger(Email.class);
+  private final Logger LOG = LoggerFactory.getLogger(Email.class);
 
   @Getter private final String email;
   private String code;
@@ -21,8 +21,8 @@ public class Email {
   }
 
   public void generateCode() {
-    this.logger.warn("Generating code for email: " + this.email);
-    this.code = RandomCode.generateCode(CODE_LENGTH);
-    this.logger.warn("Generated code: " + this.code);
+    LOG.warn("Generating code for email: " + this.email);
+    code = RandomCode.generateCode(CODE_LENGTH);
+    LOG.warn("Generated code: " + this.code);
   }
 }

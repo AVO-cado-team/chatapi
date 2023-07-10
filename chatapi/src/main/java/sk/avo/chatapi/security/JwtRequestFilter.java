@@ -4,9 +4,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.List;
-
 import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,50 +23,53 @@ import sk.avo.chatapi.domain.service.UserService;
 import sk.avo.chatapi.domain.shared.Tuple;
 import sk.avo.chatapi.security.shared.UserRoles;
 
+import java.io.IOException;
+import java.util.List;
+
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
-  private final ApplicationService applicationService;
-  private static final Logger logger = LoggerFactory.getLogger(JwtRequestFilter.class);
+    private final ApplicationService applicationService;
+    private static final Logger LOG = LoggerFactory.getLogger(JwtRequestFilter.class);
 
-  public JwtRequestFilter(ApplicationService applicationService) {
-    this.applicationService = applicationService;
-  }
+    public JwtRequestFilter(ApplicationService applicationService) {
+        this.applicationService = applicationService;
+    }
 
-  @Override
-  protected void doFilterInternal(
-          final HttpServletRequest request, final @NotNull HttpServletResponse response, final FilterChain chain)
-      throws ServletException, IOException {
-    final String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-    if (header == null || !header.startsWith("Bearer ")) {
-      chain.doFilter(request, response);
-      return;
+    @Override
+    protected void doFilterInternal(
+            final HttpServletRequest request, final @NotNull HttpServletResponse response, final FilterChain chain)
+            throws ServletException, IOException {
+        final String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (header == null || !header.startsWith("Bearer ")) {
+            chain.doFilter(request, response);
+            return;
+        }
+        Tuple<UserId, String> tokenPayloadTuple;
+        final String token = header.substring(7);
+        final UserEntity userEntity;
+        try {
+            tokenPayloadTuple = applicationService.validateTokenAndGetUserIdAndTokenType(token);
+            userEntity = applicationService.callDomainService(UserService.class).getUserById(tokenPayloadTuple.getFirst());
+        } catch (final InvalidTokenException | UserNotFoundException e) {
+            LOG.info(e.getMessage());
+            chain.doFilter(request, response);
+            return;
+        }
+        if (!tokenPayloadTuple.getSecond().equals("access")) {
+            LOG.info("token is not access");
+            chain.doFilter(request, response);
+            return;
+        }
+        boolean isUserVerified = userEntity.getIsVerified();
+        final UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(
+                        userEntity,
+                        null,
+                        List.of(
+                                (GrantedAuthority)
+                                        () -> isUserVerified ? UserRoles.USER_VERIFIED : UserRoles.USER_UNVERIFIED));
+        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        chain.doFilter(request, response);
     }
-    Tuple<Long, String> tokenPayloadTuple;
-    final String token = header.substring(7);
-    final UserEntity userEntity;
-    try {
-      tokenPayloadTuple = applicationService.validateTokenAndGetUserIdAndTokenType(token);
-      userEntity = applicationService.callDomainService(UserService.class).getUserById(new UserId(tokenPayloadTuple.getFirst()));
-    } catch (final InvalidTokenException | UserNotFoundException e) {
-      logger.info(e.getMessage());
-      chain.doFilter(request, response);
-      return;
-    }
-    if (!tokenPayloadTuple.getSecond().equals("access")) {
-      logger.info("token is not access");
-      chain.doFilter(request, response);
-      return;
-    }
-    boolean isUserVerified = userEntity.getIsVerified();
-    final UsernamePasswordAuthenticationToken authentication =
-        new UsernamePasswordAuthenticationToken(
-            userEntity,
-            null,
-            List.of(
-                (GrantedAuthority)
-                    () -> isUserVerified ? UserRoles.USER_VERIFIED : UserRoles.USER_UNVERIFIED));
-    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-    SecurityContextHolder.getContext().setAuthentication(authentication);
-    chain.doFilter(request, response);
-  }
 }

@@ -13,68 +13,69 @@ import sk.avo.chatapi.domain.model.security.TokenType;
 import sk.avo.chatapi.domain.model.user.UserId;
 import sk.avo.chatapi.domain.service.JwtTokenService;
 import sk.avo.chatapi.domain.shared.Tuple;
+
 import java.time.Duration;
 import java.time.Instant;
 
 @Service
 public class JwtTokenServiceImpl implements JwtTokenService {
-  private static final Logger logger = LoggerFactory.getLogger(JwtTokenServiceImpl.class);
-  private final Algorithm hmac512;
-  private final JWTVerifier verifier;
-  private final Duration jwtAccessTokenValidity;
-  private final Duration jwtRefreshTokenValidity;
+    private static final Logger LOG = LoggerFactory.getLogger(JwtTokenServiceImpl.class);
+    private final Algorithm hmac512;
+    private final JWTVerifier verifier;
+    private final Duration jwtAccessTokenValidity;
+    private final Duration jwtRefreshTokenValidity;
 
-  public JwtTokenServiceImpl(
-          @Value("${jwt.secret}") final String secret,
-          @Value("${jwt.validity.access-token}") final Duration accessTokenValidity,
-          @Value("${jwt.validity.refresh-token}") final Duration refreshTokenValidity
-          ) {
-    this.hmac512 = Algorithm.HMAC512(secret);
-    this.verifier = JWT.require(this.hmac512).build();
-    this.jwtAccessTokenValidity = accessTokenValidity;
-    this.jwtRefreshTokenValidity = refreshTokenValidity;
-  }
-
-  public String generateAccessToken(final UserId userId) {
-    final Instant now = Instant.now();
-    return JWT.create()
-        .withSubject(userId.getValue().toString() + ":" + TokenType.ACCESS)
-        .withIssuer("app")
-        .withIssuedAt(now)
-        .withExpiresAt(now.plusMillis(jwtAccessTokenValidity.toMillis()))
-        .sign(this.hmac512);
-  }
-
-  public String generateRefreshToken(final UserId userId) {
-    final Instant now = Instant.now();
-    return JWT.create()
-        .withSubject(userId.getValue().toString() + ":" + TokenType.REFRESH)
-        .withIssuer("app")
-        .withIssuedAt(now)
-        .withExpiresAt(now.plusMillis(jwtRefreshTokenValidity.toMillis()))
-        .sign(this.hmac512);
-  }
-
-  public Tuple<Long, String> validateTokenAndGetUserIdAndTokenType(final String token)
-      throws InvalidTokenException {
-    try {
-      String payload = verifier.verify(token).getSubject();
-      String[] parts = payload.split(":");
-      return new Tuple<>(Long.parseLong(parts[0]), parts[1]);
-    } catch (final JWTVerificationException verificationEx) {
-      logger.warn("token invalid: {}", verificationEx.getMessage());
-      throw new InvalidTokenException();
-    } catch (final Exception ex) {
-      logger.error("token invalid: {}", ex.getMessage());
-      throw new InvalidTokenException();
+    public JwtTokenServiceImpl(
+            @Value("${jwt.secret}") final String secret,
+            @Value("${jwt.validity.access-token}") final Duration accessTokenValidity,
+            @Value("${jwt.validity.refresh-token}") final Duration refreshTokenValidity
+    ) {
+        this.hmac512 = Algorithm.HMAC512(secret);
+        this.verifier = JWT.require(this.hmac512).build();
+        this.jwtAccessTokenValidity = accessTokenValidity;
+        this.jwtRefreshTokenValidity = refreshTokenValidity;
     }
-  }
 
-  public Duration getJwtAccessTokenValidity() {
-    return jwtAccessTokenValidity;
-  }
+    public String generateAccessToken(final UserId userId) {
+        final Instant now = Instant.now();
+        return JWT.create()
+                .withSubject(userId.getValue().toString() + ":" + TokenType.ACCESS)
+                .withIssuer("app")
+                .withIssuedAt(now)
+                .withExpiresAt(now.plusMillis(jwtAccessTokenValidity.toMillis()))
+                .sign(this.hmac512);
+    }
 
-  public Duration getJwtRefreshTokenValidity() {
-    return jwtRefreshTokenValidity;
-  }
+    public String generateRefreshToken(final UserId userId) {
+        final Instant now = Instant.now();
+        return JWT.create()
+                .withSubject(userId.getValue().toString() + ":" + TokenType.REFRESH)
+                .withIssuer("app")
+                .withIssuedAt(now)
+                .withExpiresAt(now.plusMillis(jwtRefreshTokenValidity.toMillis()))
+                .sign(this.hmac512);
+    }
+
+    public Tuple<UserId, String> validateTokenAndGetUserIdAndTokenType(final String token)
+            throws InvalidTokenException {
+        try {
+            String payload = verifier.verify(token).getSubject();
+            String[] parts = payload.split(":");
+            return new Tuple<>(new UserId(Long.parseLong(parts[0])), parts[1]);
+        } catch (final JWTVerificationException verificationEx) {
+            LOG.warn("token invalid: {}", verificationEx.getMessage());
+            throw new InvalidTokenException();
+        } catch (final Exception ex) {
+            LOG.error("token invalid: {}", ex.getMessage());
+            throw new InvalidTokenException();
+        }
+    }
+
+    public Duration getJwtAccessTokenValidity() {
+        return jwtAccessTokenValidity;
+    }
+
+    public Duration getJwtRefreshTokenValidity() {
+        return jwtRefreshTokenValidity;
+    }
 }

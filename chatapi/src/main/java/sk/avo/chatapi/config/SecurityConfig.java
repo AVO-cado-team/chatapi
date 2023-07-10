@@ -1,7 +1,5 @@
 package sk.avo.chatapi.config;
 
-import static org.springframework.security.config.Customizer.withDefaults;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,16 +11,16 @@ import sk.avo.chatapi.security.JwtRequestFilter;
 import sk.avo.chatapi.security.shared.UserRoles;
 
 @Configuration
-public class Security {
+public class SecurityConfig {
   private final JwtRequestFilter jwtRequestFilter;
 
-  public Security(JwtRequestFilter jwtRequestFilter) {
+  public SecurityConfig(JwtRequestFilter jwtRequestFilter) {
     this.jwtRequestFilter = jwtRequestFilter;
   }
 
   @Bean
   public SecurityFilterChain configure(final HttpSecurity http) throws Exception {
-    return http.cors(withDefaults())
+    return http.cors(AbstractHttpConfigurer::disable)
         .csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(
             (authorize) ->
