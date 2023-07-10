@@ -3,7 +3,7 @@ package sk.avo.chatapi.config;
 import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -13,23 +13,21 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.web.socket.CloseStatus;
-import org.springframework.web.socket.WebSocketHandler;
-import org.springframework.web.socket.WebSocketSession;
-import org.springframework.web.socket.config.annotation.*;
-import org.springframework.web.socket.handler.WebSocketHandlerDecorator;
-import org.springframework.web.socket.handler.WebSocketHandlerDecoratorFactory;
+import org.springframework.web.socket.config.annotation.EnableWebSocket;
+import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
+import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 import sk.avo.chatapi.application.ApplicationService;
+import sk.avo.chatapi.application.exceptions.SubscriptionPathNotFoundException;
+import sk.avo.chatapi.domain.model.chat.ChatId;
 import sk.avo.chatapi.domain.model.security.InvalidTokenException;
-import sk.avo.chatapi.domain.model.user.UserEntity;
+import sk.avo.chatapi.domain.model.user.UserId;
 import sk.avo.chatapi.domain.model.user.UserNotFoundException;
-import sk.avo.chatapi.domain.shared.Tuple;
-import sk.avo.chatapi.security.model.UserRoles;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -38,21 +36,18 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private static final Logger LOG = LoggerFactory.getLogger(WebSocketConfig.class);
     private final ApplicationService applicationService;
 
-    public WebSocketConfig(ApplicationService applicationService) {
+    private final String tokenHeaderName;
+
+    public WebSocketConfig(ApplicationService applicationService, @Value("${stomp.token.header.name}") String tokenHeaderName) {
         this.applicationService = applicationService;
+        this.tokenHeaderName = tokenHeaderName;
     }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/chats");
+        registry.enableSimpleBroker("/chat");
         registry.setApplicationDestinationPrefixes("/app");
         registry.setPreservePublishOrder(true);
-    }
-
-    @Override
-    public void configureWebSocketTransport(WebSocketTransportRegistration registration) {
-        registration.setSendTimeLimit(15 * 1000) // Set the send time limit as needed
-                .addDecoratorFactory(disconnectEventInterceptor());
     }
 
     @Override
@@ -67,67 +62,45 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registration.interceptors(authenticationInterceptor());
     }
 
+
     public ChannelInterceptor authenticationInterceptor() {
         return new ChannelInterceptor() {
             @Override
             public Message<?> preSend(@NotNull Message<?> message, @NotNull MessageChannel channel) {
                 StompHeaderAccessor accessor = Objects.requireNonNull(MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class));
-                if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-                    try {
-                        String token = Objects.requireNonNull(accessor.getNativeHeader("xxx").get(0));
-                        LOG.warn("Token: {}", token);
-                        final UserEntity userEntity;
-                        Tuple<Long, String> tokenPayloadTuple = null;
-                        try {
-                            tokenPayloadTuple = applicationService.validateTokenAndGetUserIdAndTokenType(token);
-                            userEntity = applicationService.getUserById(tokenPayloadTuple.getFirst());
-                        } catch (final InvalidTokenException | UserNotFoundException e) {
-                            LOG.info(e.getMessage());
-                            return null;
-                        }
-                        if (!tokenPayloadTuple.getSecond().equals("access")) {
-                            LOG.info("token is not access");
-                            return null;
-                        }
-                        boolean isUserVerified = userEntity.getIsVerified();
-                        final UsernamePasswordAuthenticationToken authentication =
-                                new UsernamePasswordAuthenticationToken(
-                                        userEntity,
-                                        null,
-                                        List.of(
-                                                (GrantedAuthority)
-                                                        () -> isUserVerified ? UserRoles.USER_VERIFIED : UserRoles.USER_UNVERIFIED));
-                        accessor.setUser(authentication);
-                    } catch (Exception e) {
-                        LOG.error("Error: " + e.getMessage());
-                        return null;
-                    }
+                StompCommand command = Objects.requireNonNull(accessor.getCommand());
 
-                    return message;
+                try {
+                    switch (command) {
+                        case CONNECT -> {
+                            List<String> headersToken = Optional.ofNullable(accessor.getNativeHeader(tokenHeaderName)).orElseThrow(InvalidTokenException::new);
+                            String token = Optional.ofNullable(headersToken.get(0)).orElseThrow(InvalidTokenException::new);
+                            Principal user = applicationService.authenticate(token);
+                            accessor.setUser(user);
+                            LOG.debug("Successfully connected User {} with Token: {}", user.getName(), token);
+                        }
+                        case SUBSCRIBE -> {
+                            Principal user = Optional.ofNullable(accessor.getUser()).orElseThrow(UserNotFoundException::new);
+                            String path = Optional.ofNullable(accessor.getDestination()).orElseThrow(SubscriptionPathNotFoundException::new);
+                            UserId userId = new UserId(user.getName());
+                            ChatId chatId = new ChatId(path.substring(path.lastIndexOf("/") + 1));
+                            applicationService.handleSubscribe(userId, chatId);
+                            LOG.debug("User subscribed to: {}", accessor.getDestination());
+                        }
+                        case DISCONNECT -> {
+                            Principal user = Optional.ofNullable(accessor.getUser()).orElseThrow(UserNotFoundException::new);
+                            UserId userId = new UserId(user.getName());
+                            applicationService.handleDisconnect(userId);
+                            LOG.debug("User disconnected: {}", accessor.getUser());
+                        }
+                    }
+                } catch (Exception e) {
+                    LOG.debug("Error while {} websocket: ", command, e);
+                    return null;
                 }
 
                 return message;
             }
         };
-    }
-
-    @Bean
-    public WebSocketHandlerDecoratorFactory disconnectEventInterceptor() {
-        return new WebSocketHandlerDecoratorFactory() {
-            @Override
-            public @NotNull WebSocketHandler decorate(@NotNull WebSocketHandler handler) {
-                return new WebSocketHandlerDecorator(handler) {
-                    @Override
-                    public void afterConnectionClosed(@NotNull WebSocketSession session, @NotNull CloseStatus closeStatus) throws Exception {
-                        LOG.warn("User disconnected: ", session);
-                        super.afterConnectionClosed(session, closeStatus);
-                    }
-                };
-            }
-        };
-    }
-
-    private void handleUserDisconnection() {
-        LOG.warn("User disconnected: ");
     }
 }
