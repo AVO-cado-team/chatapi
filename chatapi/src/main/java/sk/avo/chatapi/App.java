@@ -5,8 +5,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import sk.avo.chatapi.domain.model.user.UserEntity;
 import sk.avo.chatapi.domain.repository.UserRepo;
 
@@ -15,7 +18,7 @@ import sk.avo.chatapi.domain.repository.UserRepo;
 public class App {
 
   private final UserRepo userRepo;
-  private Logger LOG = LoggerFactory.getLogger(App.class);
+  private final Logger LOG = LoggerFactory.getLogger(App.class);
   public App(UserRepo userRepo) {
     this.userRepo = userRepo;
   }
@@ -26,9 +29,9 @@ public class App {
   @PostConstruct
   public void init() {
     // FIXME Remove this code
-    String username = "user";
-    String password = "user";
-    String email = "user@user.com";
+    final String username = "user";
+    final String password = "user";
+    final String email = "user@user.com";
     UserEntity user = new UserEntity();
     user.setUsername(username);
     final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
@@ -38,4 +41,15 @@ public class App {
     user.setIsVerified(true);
     userRepo.save(user);
   }
+
+
+	@Bean
+	public WebMvcConfigurer corsConfigurer() {
+		return new WebMvcConfigurer() {
+			@Override
+			public void addCorsMappings(CorsRegistry registry) {
+				registry.addMapping("/**").allowedOrigins("http://localhost:3000");
+			}
+		};
+	}
 }
