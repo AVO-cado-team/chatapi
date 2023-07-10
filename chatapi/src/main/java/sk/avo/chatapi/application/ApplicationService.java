@@ -7,19 +7,21 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import sk.avo.chatapi.application.dto.TokenPair;
 import sk.avo.chatapi.domain.model.chat.*;
+import sk.avo.chatapi.domain.model.filestorage.FileNotFoundException;
 import sk.avo.chatapi.domain.model.security.InvalidTokenException;
 import sk.avo.chatapi.domain.model.security.TokenType;
 import sk.avo.chatapi.domain.model.user.*;
 import sk.avo.chatapi.domain.service.ChatService;
+import sk.avo.chatapi.domain.service.FileStorageService;
 import sk.avo.chatapi.domain.service.JwtTokenService;
 import sk.avo.chatapi.domain.service.RoomService;
 import sk.avo.chatapi.domain.service.UserService;
 import sk.avo.chatapi.domain.shared.Tuple;
-import sk.avo.chatapi.security.shared.UserRoles;
+import sk.avo.chatapi.domain.model.security.TokenType;
 
-import java.security.Principal;
-import java.util.List;
+import java.io.File;
 import java.util.Set;
+import java.util.UUID;
 
 
 @Service
@@ -30,11 +32,13 @@ public class ApplicationService {
     private final ChatService chatService;
     private final RoomService roomService;
     private final Integer pageSize;
-
+    private final FileStorageService fileStorageService;
+    private final Integer pageSize;
 
     /**
      * Call domain service from application service
      *
+     * @param domainServiceInterface
      * @param <T>                    domain service interface
      * @return domain service
      */
@@ -47,13 +51,14 @@ public class ApplicationService {
             JwtTokenService jwtTokenService,
             ApplicationContext applicationContext,
             ChatService chatService,
-            RoomService roomService, @Value("${application.page-size}") Integer pageSize) {
+            RoomService roomService, @Value("${application.page-size}") Integer pageSize, FileStorageService fileStorageService) {
         this.userService = userService;
         this.jwtTokenService = jwtTokenService;
         this.applicationContext = applicationContext;
         this.chatService = chatService;
         this.roomService = roomService;
         this.pageSize = pageSize;
+        this.fileStorageService = fileStorageService;
     }
 
     public TokenPair signup(String username, String password, String email) throws UserAlreadyExistsException {
@@ -84,17 +89,17 @@ public class ApplicationService {
     }
 
     public TokenPair refresh(String refreshToken) throws InvalidTokenException {
-        final Tuple<UserId, String> tokenPayload = jwtTokenService.validateTokenAndGetUserIdAndTokenType(refreshToken);
+        final Tuple<Long, String> tokenPayload = jwtTokenService.validateTokenAndGetUserIdAndTokenType(refreshToken);
         if (!tokenPayload.getSecond().equals(TokenType.REFRESH))
             throw new InvalidTokenException();
         final TokenPair tokenPair = new TokenPair();
-        final UserId userId = tokenPayload.getFirst();
+        final UserId userId = new UserId(tokenPayload.getFirst());
         tokenPair.setAccessToken(jwtTokenService.generateAccessToken(userId));
         tokenPair.setRefreshToken(jwtTokenService.generateRefreshToken(userId));
         return tokenPair;
     }
 
-    public Tuple<UserId, String> validateTokenAndGetUserIdAndTokenType(final String token) throws InvalidTokenException {
+    public Tuple<Long, String> validateTokenAndGetUserIdAndTokenType(final String token) throws InvalidTokenException {
         return jwtTokenService.validateTokenAndGetUserIdAndTokenType(token);
     }
 
@@ -118,10 +123,15 @@ public class ApplicationService {
         return chatService.createMessage(new UserId(userId), new ChatId(chatId), text, new MessageId(replyToMessageId), MessageType.TEXT, null);
     }
 
-    public MessageEntity sendPhotoMessage(Long userId, Long chatId, String text, Long replyToMessageId, String content)
-            throws ChatNotFoundException, UserIsNotInTheChatException {
-        return chatService.createMessage(new UserId(userId), new ChatId(chatId), text, new MessageId(replyToMessageId), MessageType.PHOTO, content);
-    }
+  public MessageEntity sendPhotoMessage(Long userId, Long chatId, String text, Long replyToMessageId, File content)
+          throws ChatNotFoundException, UserIsNotInTheChatException {
+    UUID uuid = fileStorageService.storeFile(content);
+    return chatService.createMessage(new UserId(userId), new ChatId(chatId), text, new MessageId(replyToMessageId), MessageType.PHOTO, uuid.toString());
+  }
+
+  public File getFile(String uuid) throws FileNotFoundException {
+    return fileStorageService.getFile(UUID.fromString(uuid));
+  }
 
     public ChatEntity createChat(String name, Long userId) throws ChatNotFoundException {
         ChatEntity chat = chatService.createChat(name);
@@ -148,11 +158,9 @@ public class ApplicationService {
         return chatService.getChatAndUserFromChat(new ChatId(chatId), new UserId(userId)).getFirst();
     }
 
-    @SuppressWarnings("unused")
     public void deleteChat(Long chatId, Long userId) throws ChatNotFoundException, UserIsNotInTheChatException {
         chatService.deleteChat(new ChatId(chatId), new UserId(userId));
         ChatEntity chat = chatService.getChatAndUserFromChat(new ChatId(chatId), new UserId(userId)).getFirst();
-        roomService.deleteRoom(new ChatId(chatId));
     }
 
     public void addUserToChat(Long chatId, Long userId, String newUserUsername)
