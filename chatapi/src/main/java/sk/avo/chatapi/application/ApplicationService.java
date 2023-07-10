@@ -20,6 +20,8 @@ import sk.avo.chatapi.domain.shared.Tuple;
 import sk.avo.chatapi.domain.model.security.TokenType;
 
 import java.io.File;
+import java.security.Principal;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -33,7 +35,6 @@ public class ApplicationService {
     private final RoomService roomService;
     private final Integer pageSize;
     private final FileStorageService fileStorageService;
-    private final Integer pageSize;
 
     /**
      * Call domain service from application service
@@ -89,17 +90,17 @@ public class ApplicationService {
     }
 
     public TokenPair refresh(String refreshToken) throws InvalidTokenException {
-        final Tuple<Long, String> tokenPayload = jwtTokenService.validateTokenAndGetUserIdAndTokenType(refreshToken);
+        final Tuple<UserId, String> tokenPayload = jwtTokenService.validateTokenAndGetUserIdAndTokenType(refreshToken);
         if (!tokenPayload.getSecond().equals(TokenType.REFRESH))
             throw new InvalidTokenException();
         final TokenPair tokenPair = new TokenPair();
-        final UserId userId = new UserId(tokenPayload.getFirst());
+        final UserId userId = tokenPayload.getFirst();
         tokenPair.setAccessToken(jwtTokenService.generateAccessToken(userId));
         tokenPair.setRefreshToken(jwtTokenService.generateRefreshToken(userId));
         return tokenPair;
     }
 
-    public Tuple<Long, String> validateTokenAndGetUserIdAndTokenType(final String token) throws InvalidTokenException {
+    public Tuple<UserId, String> validateTokenAndGetUserIdAndTokenType(final String token) throws InvalidTokenException {
         return jwtTokenService.validateTokenAndGetUserIdAndTokenType(token);
     }
 
