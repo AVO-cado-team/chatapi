@@ -1,15 +1,24 @@
 package sk.avo.chatapi.presentation.controller;
 
+import org.slf4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import sk.avo.chatapi.application.ApplicationService;
 import sk.avo.chatapi.domain.model.chat.*;
 import sk.avo.chatapi.domain.model.user.UserEntity;
+import sk.avo.chatapi.domain.model.user.UserId;
 import sk.avo.chatapi.domain.model.user.UserNotFoundException;
 import sk.avo.chatapi.presentation.dto.chat.*;
 
+import java.util.Objects;
 import java.util.Set;
 
 @RestController
@@ -17,8 +26,15 @@ import java.util.Set;
 public class Chat {
   private final ApplicationService applicationService;
 
-  public Chat(ApplicationService applicationService) {
+  private final Logger LOG = org.slf4j.LoggerFactory.getLogger(Chat.class);
+  private final RoomService roomService;
+
+  private final SimpMessagingTemplate brokerMessagingTemplate;
+
+  public Chat(ApplicationService applicationService, RoomService roomService, SimpMessagingTemplate brokerMessagingTemplate) {
     this.applicationService = applicationService;
+    this.roomService = roomService;
+    this.brokerMessagingTemplate = brokerMessagingTemplate;
   }
 
   @PostMapping("/")
@@ -204,4 +220,28 @@ public class Chat {
     }
     return ResponseEntity.ok().build();
   }
+
+
+  // Handle STOMP messages from client
+  @MessageMapping("/chat/{roomId}/send")
+  public String sendMessage(
+          @DestinationVariable String roomId, Message message,
+          SimpMessageHeaderAccessor accessor) {
+    LOG.debug("Received message: {}, roomId: {}, user: {}", message, roomId, Objects.requireNonNull(accessor.getUser()).getName());
+    UserId userId = new UserId(Long.valueOf(Objects.requireNonNull(accessor.getUser()).getName()));
+    if (!roomService.isUserInRoom(new ChatId(Long.valueOf(roomId)), userId)) {
+      LOG.debug("User {} is not in room {}", userId, roomId);
+      return null;
+    }
+    try {
+      LOG.debug("Sending message to /chat/" + roomId);
+      this.applicationService.sendTextMessage(userId.getValue(), Long.valueOf(roomId), message.getPayload().toString(), null);
+      this.brokerMessagingTemplate.send("/chat/" + roomId, new GenericMessage<>(message.getPayload(), message.getHeaders()));
+    } catch (ChatNotFoundException | UserIsNotInTheChatException e) {
+      LOG.debug("Error while sending message to /chat/{} : Error:", roomId, e);
+    }
+
+    return null;
+  }
+
 }
