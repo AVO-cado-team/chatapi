@@ -21,8 +21,8 @@ public class Email {
   }
 
   public void generateCode() {
-    LOG.warn("Generating code for email: " + this.email);
+    LOG.debug("Generating code for email: " + this.email);
     code = RandomCode.generateCode(CODE_LENGTH);
-    LOG.warn("Generated code: " + this.code);
+    LOG.debug("Generated code: " + this.code);
   }
 }

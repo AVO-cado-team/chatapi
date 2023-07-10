@@ -51,12 +51,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             tokenPayloadTuple = applicationService.validateTokenAndGetUserIdAndTokenType(token);
             userEntity = applicationService.callDomainService(UserService.class).getUserById(tokenPayloadTuple.getFirst());
         } catch (final InvalidTokenException | UserNotFoundException e) {
-            LOG.info(e.getMessage());
+            LOG.debug(e.getMessage());
             chain.doFilter(request, response);
             return;
         }
         if (!tokenPayloadTuple.getSecond().equals("access")) {
-            LOG.info("token is not access");
+            LOG.debug("token is not access");
             chain.doFilter(request, response);
             return;
         }
@@ -65,9 +65,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 new UsernamePasswordAuthenticationToken(
                         userEntity,
                         null,
-                        List.of(
-                                (GrantedAuthority)
-                                        () -> isUserVerified ? UserRoles.USER_VERIFIED : UserRoles.USER_UNVERIFIED));
+                        List.of((GrantedAuthority) () -> isUserVerified ? UserRoles.USER_VERIFIED : UserRoles.USER_UNVERIFIED));
         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         chain.doFilter(request, response);
