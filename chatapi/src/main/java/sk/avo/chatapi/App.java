@@ -1,8 +1,7 @@
 package sk.avo.chatapi;
 
 import jakarta.annotation.PostConstruct;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -18,8 +17,8 @@ import sk.avo.chatapi.domain.repository.UserRepo;
 public class App {
 
   private final UserRepo userRepo;
-  private final Logger LOG = LoggerFactory.getLogger(App.class);
-  public App(UserRepo userRepo) {
+
+    public App(UserRepo userRepo) {
     this.userRepo = userRepo;
   }
   public static void main(String[] args) {
@@ -47,7 +46,7 @@ public class App {
 	public WebMvcConfigurer corsConfigurer() {
 		return new WebMvcConfigurer() {
 			@Override
-			public void addCorsMappings(CorsRegistry registry) {
+			public void addCorsMappings(@NotNull CorsRegistry registry) {
 				registry.addMapping("/**").allowedOrigins("http://localhost:3000");
 			}
 		};
