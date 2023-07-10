@@ -13,6 +13,15 @@ services:
     volumes:
       - ./postgres:/docker-entrypoint-initdb.d
 
+  simple-file-storage:
+    image: ghcr.io/ic-it/simple_file_storage_api:main
+    container_name: simple-file-storage
+    environment:
+      SFSA_APP_STORAGE_PATH: /app/storage
+      SFSA_APP_PORT: 8080
+    ports:
+      - 8081:8080
+
   chatapi:
     image: chatapi-image
     container_name: chatapi
@@ -20,5 +29,7 @@ services:
       - 8080:8080
     depends_on:
       - postgres
+      - simple-file-storage
     env_file:
       .env
+

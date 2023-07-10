@@ -1,19 +1,22 @@
 package sk.avo.chatapi.application;
 
-import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import sk.avo.chatapi.application.dto.*;
 import sk.avo.chatapi.domain.model.chat.*;
+import sk.avo.chatapi.domain.model.filestorage.FileNotFoundException;
 import sk.avo.chatapi.domain.model.security.InvalidTokenException;
 import sk.avo.chatapi.domain.model.user.*;
 import sk.avo.chatapi.domain.service.ChatService;
+import sk.avo.chatapi.domain.service.FileStorageService;
 import sk.avo.chatapi.domain.service.JwtTokenService;
 import sk.avo.chatapi.domain.service.UserService;
 import sk.avo.chatapi.domain.shared.Tuple;
 import sk.avo.chatapi.domain.model.security.TokenType;
+import java.io.File;
 import java.util.Set;
+import java.util.UUID;
 
 
 @Service
@@ -22,6 +25,7 @@ public class ApplicationService {
   private final JwtTokenService jwtTokenService;
   private final ApplicationContext applicationContext;
   private final ChatService chatService;
+  private final FileStorageService fileStorageService;
   private final Integer pageSize;
 
   /**
@@ -39,11 +43,13 @@ public class ApplicationService {
           JwtTokenService jwtTokenService,
           ApplicationContext applicationContext,
           ChatService chatService,
+          FileStorageService fileStorageService,
           @Value("${application.page-size}") Integer pageSize) {
     this.userService = userService;
     this.jwtTokenService = jwtTokenService;
     this.applicationContext = applicationContext;
     this.chatService = chatService;
+    this.fileStorageService = fileStorageService;
     this.pageSize = pageSize;
   }
 
@@ -109,9 +115,14 @@ public class ApplicationService {
     return chatService.createMessage(new UserId(userId), new ChatId(chatId), text, new MessageId(replyToMessageId), MessageType.TEXT, null);
   }
 
-  public MessageEntity sendPhotoMessage(Long userId, Long chatId, String text, Long replyToMessageId, String content)
+  public MessageEntity sendPhotoMessage(Long userId, Long chatId, String text, Long replyToMessageId, File content)
           throws ChatNotFoundException, UserIsNotInTheChatException {
-    return chatService.createMessage(new UserId(userId), new ChatId(chatId), text, new MessageId(replyToMessageId), MessageType.PHOTO, content);
+    UUID uuid = fileStorageService.storeFile(content);
+    return chatService.createMessage(new UserId(userId), new ChatId(chatId), text, new MessageId(replyToMessageId), MessageType.PHOTO, uuid.toString());
+  }
+
+  public File getFile(String uuid) throws FileNotFoundException {
+    return fileStorageService.getFile(UUID.fromString(uuid));
   }
 
   public ChatEntity createChat(String name, Long userId) throws ChatNotFoundException {
