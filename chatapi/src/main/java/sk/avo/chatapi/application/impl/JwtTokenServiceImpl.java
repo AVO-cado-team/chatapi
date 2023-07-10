@@ -3,7 +3,6 @@ package sk.avo.chatapi.application.impl;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTVerificationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -62,11 +61,8 @@ public class JwtTokenServiceImpl implements JwtTokenService {
             String payload = verifier.verify(token).getSubject();
             String[] parts = payload.split(":");
             return new Tuple<>(new UserId(Long.parseLong(parts[0])), parts[1]);
-        } catch (final JWTVerificationException verificationEx) {
-            LOG.warn("token invalid: {}", verificationEx.getMessage());
-            throw new InvalidTokenException();
         } catch (final Exception ex) {
-            LOG.error("token invalid: {}", ex.getMessage());
+            LOG.debug("token invalid: {}", ex.getMessage());
             throw new InvalidTokenException();
         }
     }

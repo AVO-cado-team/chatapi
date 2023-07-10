@@ -67,7 +67,7 @@ public class ChatServiceImpl implements ChatService {
   public MessageEntity createMessage(UserId userId, ChatId chatId, String text, MessageId replyToMessageId, MessageType type, String content)
           throws ChatNotFoundException, UserIsNotInTheChatException {
     Tuple<ChatEntity, UserEntity> tuple = getChatAndUserFromChat(chatId, userId);
-    MessageEntity replyToMessage = messageRepo.findMessageByChatIdAndMessageId(chatId.getValue(), replyToMessageId.getValue()).orElse(null);
+    MessageEntity replyToMessage = replyToMessageId == null ? null : messageRepo.findMessageByChatIdAndMessageId(chatId.getValue(), replyToMessageId.getValue()).orElse(null);
     UserEntity user = tuple.getSecond();
     ChatEntity chat = tuple.getFirst();
     MessageEntity message = new MessageEntity();
