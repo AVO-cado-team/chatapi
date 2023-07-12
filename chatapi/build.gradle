@@ -44,3 +44,12 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
 }
+
+test {
+    useJUnitPlatform()
+    testLogging.showStandardStreams = true
+    testLogging { events "FAILED", "SKIPPED", "PASSED" }
+    filter {
+        includeTestsMatching "sk.avo.chatapi.ChatapiApplicationTests"
+    }
+}

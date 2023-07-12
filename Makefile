@@ -13,16 +13,18 @@ OK 		= $(ccok)[OK]   |$(ccreset)
 DOCKER_COMPOSE_ARGS = -f ./ci/build/docker-compose.yml
 APP_DOCKER_FILE = ./ci/build/Dockerfile
 APP_DEV_DOCKER_FILE = ./ci/build/dev.Dockerfile
+TEST_APP_DEV_DOCKER_FILE = ./ci/build/test.Dockerfile
 APP_DOTENV_FILE = ./ci/build/.env
 APP_DEFAULT_DOTENV_FILE = ./ci/build/.default.env
 APP_VERSION = 0.0.1
 APP_DOCKER_IMAGE = chatapi-image
+TEST_APP_DOCKER_IMAGE = chatapi-test-image
 APP_DOCKER_CONTAINER = chatapi
+TEST_APP_DOCKER_CONTAINER = chatapi-test
 APP_BUILD_INFO_PROPERTIES = ./chatapi/src/main/resources/build-info.properties
 DB_DOCKER_CONTAINER = postgres
 DB_EXTERNAL_PORT = 5433
 SIMPLE_FILE_STORAGE_DOCKER_CONTAINER = simple-file-storage
-
 
 .download-wait-for-it:
 	@echo "${INFO} Downloading wait-for-it.sh"
@@ -67,6 +69,10 @@ build-app: .create-build-info-properties
 	@echo "${INFO} Building app"
 	@docker build -t $(APP_DOCKER_IMAGE) -f $(APP_DOCKER_FILE) .
 
+build-test-app: .create-build-info-properties
+	@echo "${INFO} Building test app"
+	@docker build -t $(TEST_APP_DOCKER_IMAGE) -f $(TEST_APP_DEV_DOCKER_FILE) .
+
 dev-build-app: .create-build-info-properties
 	@echo "${INFO} Building app for development"
 	@chmod +x ./chatapi/gradlew
@@ -77,14 +83,20 @@ up-app: .wait-for-db
 	@echo "${INFO} Starting app"
 	@docker-compose $(DOCKER_COMPOSE_ARGS) up -d $(APP_DOCKER_CONTAINER)
 
+up-test-app: .wait-for-db
+	@echo "${INFO} Starting test app"
+	@docker-compose $(DOCKER_COMPOSE_ARGS) up -d $(TEST_APP_DOCKER_CONTAINER)
+
 stop-app:
 	@echo "${INFO} Stopping app"
 	@docker-compose $(DOCKER_COMPOSE_ARGS) stop $(APP_DOCKER_CONTAINER)
+	@docker-compose $(DOCKER_COMPOSE_ARGS) stop $(TEST_APP_DOCKER_CONTAINER)
 
 logs-app:
 	@echo "${INFO} Showing app logs"
 	@docker-compose $(DOCKER_COMPOSE_ARGS) logs -f $(APP_DOCKER_CONTAINER)
 
 up: .exists-check .up-db .up-simple-file-storage build-app up-app logs-app
+up-test: .exists-check .up-db .up-simple-file-storage build-test-app up-test-app logs-app
 stop: stop-app .stop-db
 dev-up: .exists-check .up-db .up-simple-file-storage dev-build-app up-app logs-app

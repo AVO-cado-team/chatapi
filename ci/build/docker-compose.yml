@@ -33,3 +33,11 @@ services:
     env_file:
       .env
 
+  chatapi-test:
+    image: chatapi-test-image
+    container_name: chatapi-test
+    depends_on:
+      - postgres
+      - simple-file-storage
+    env_file:
+      .env
