@@ -29,7 +29,7 @@ The final result is a Docker image. For convenience, we have created a Docker Co
 - Our app supports a verification system for Email.
 - JWT is used for authentication.
 - Access and refresh tokens are used.
-- The app supports the following roles: USER_VERIFIED, USER_UNVERIFIED
+- The app supports the following roles: `USER_VERIFIED`, `USER_UNVERIFIED`
 
 ### API
 - REST API is documented using OpenAPI 3.0.
