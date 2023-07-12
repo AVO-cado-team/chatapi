@@ -8,8 +8,8 @@ import sk.avo.chatapi.domain.model.user.UserEntity;
 import java.util.Date;
 
 
+@Entity
 @Data
-@Setter
 @Table(name = "messages")
 @IdClass(MessageEntityId.class)
 public class MessageEntity {

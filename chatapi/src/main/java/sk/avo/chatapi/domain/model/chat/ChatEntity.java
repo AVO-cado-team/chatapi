@@ -13,7 +13,6 @@ import java.util.Set;
 
 @Entity
 @Data
-@Setter
 @Table(name = "chats")
 public class ChatEntity {
   @Id
