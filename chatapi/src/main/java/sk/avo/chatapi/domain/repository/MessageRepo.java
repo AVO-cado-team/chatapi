@@ -7,7 +7,6 @@ import sk.avo.chatapi.domain.model.chat.MessageEntity;
 import sk.avo.chatapi.domain.model.chat.MessageEntityId;
 
 import java.util.Optional;
-//import java.util.Set;
 
 public interface MessageRepo extends JpaRepository<MessageEntity, MessageEntityId> {
   Optional<MessageEntity> findMessageByChatIdAndMessageId(Long chatId, Long messageId);

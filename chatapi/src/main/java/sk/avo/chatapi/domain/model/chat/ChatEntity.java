@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-import lombok.Setter;
 import sk.avo.chatapi.domain.model.user.UserEntity;
 
 import java.util.HashSet;
