@@ -3,15 +3,16 @@ package sk.avo.chatapi.domain.model.chat;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import java.util.HashSet;
-import java.util.Set;
-import lombok.Getter;
+import lombok.Data;
 import lombok.Setter;
 import sk.avo.chatapi.domain.model.user.UserEntity;
 
+import java.util.HashSet;
+import java.util.Set;
+
 
 @Entity
-@Getter
+@Data
 @Setter
 @Table(name = "chats")
 public class ChatEntity {

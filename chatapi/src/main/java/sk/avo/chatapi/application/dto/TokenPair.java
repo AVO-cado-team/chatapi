@@ -1,10 +1,8 @@
 package sk.avo.chatapi.application.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
 public class TokenPair {
   private String accessToken;
   private String refreshToken;

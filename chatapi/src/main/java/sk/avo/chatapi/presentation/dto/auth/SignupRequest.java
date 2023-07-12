@@ -1,12 +1,10 @@
 package sk.avo.chatapi.presentation.dto.auth;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
+@Data
 @AllArgsConstructor
-@Getter
-@Setter
 public class SignupRequest {
   private String username;
   private String password;

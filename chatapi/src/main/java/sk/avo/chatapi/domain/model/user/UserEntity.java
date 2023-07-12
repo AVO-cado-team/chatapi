@@ -3,14 +3,12 @@ package sk.avo.chatapi.domain.model.user;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.util.Date;
 
 @Entity
-@Getter
-@Setter
+@Data
 public class UserEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

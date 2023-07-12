@@ -1,10 +1,8 @@
 package sk.avo.chatapi.presentation.dto.exceptionsresolver;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
 public class ErrorResponse {
   private int statusCode;
   private String message;

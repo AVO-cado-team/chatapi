@@ -1,10 +1,8 @@
 package sk.avo.chatapi.presentation.dto.auth;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
 public class LoginResponse {
   private String accessToken;
   private String refreshToken;

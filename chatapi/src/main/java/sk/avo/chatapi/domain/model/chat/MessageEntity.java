@@ -1,14 +1,14 @@
 package sk.avo.chatapi.domain.model.chat;
 
 import jakarta.persistence.*;
-import java.util.Date;
-import lombok.Getter;
+import lombok.Data;
 import lombok.Setter;
 import sk.avo.chatapi.domain.model.user.UserEntity;
 
+import java.util.Date;
 
-@Entity
-@Getter
+
+@Data
 @Setter
 @Table(name = "messages")
 @IdClass(MessageEntityId.class)
