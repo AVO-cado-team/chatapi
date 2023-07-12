@@ -25,4 +25,14 @@ public class Email {
     code = RandomCode.generateCode(CODE_LENGTH);
     LOG.debug("Generated code: " + this.code);
   }
+
+  /**
+   * For testing purposes only
+   *
+   * @param code
+   */
+  public void setCode(String code) {
+    this.code = code;
+    LOG.info("Set code for email: " + this.email + " to: " + this.code);
+  }
 }
