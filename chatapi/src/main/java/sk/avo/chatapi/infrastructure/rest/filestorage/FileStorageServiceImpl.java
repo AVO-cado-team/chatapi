@@ -16,8 +16,6 @@ public class FileStorageServiceImpl implements FileStorageService {
   private final String simpleFileStorageAPIUrl;
   private final OkHttpClient httpClient;
   private final ObjectMapper objectMapper;
-  private final String STORAGE_FILE_PATH = "/upload";
-  private final String GET_FILE_PATH = "/download/{fileId}";
 
   public FileStorageServiceImpl(
           @Value("${simple-file-storage-api.url}")
@@ -32,9 +30,10 @@ public class FileStorageServiceImpl implements FileStorageService {
   public UUID storeFile(File file) {
     RequestBody requestBody = new MultipartBody.Builder()
             .setType(MultipartBody.FORM)
-            .addFormDataPart("file", file.getName(), RequestBody.create(MediaType.parse("application/octet-stream"), file))
+            .addFormDataPart("file", file.getName(), RequestBody.create(file, MediaType.parse("application/octet-stream")))
             .build();
 
+    String STORAGE_FILE_PATH = "/upload";
     Request request = new Request.Builder()
             .url(simpleFileStorageAPIUrl + STORAGE_FILE_PATH)
             .post(requestBody)
@@ -57,6 +56,7 @@ public class FileStorageServiceImpl implements FileStorageService {
 
   @Override
   public File getFile(UUID fileId) throws FileNotFoundException {
+    String GET_FILE_PATH = "/download/{fileId}";
     String getFileUrl = simpleFileStorageAPIUrl + GET_FILE_PATH.replace("{fileId}", fileId.toString());
     Request request = new Request.Builder()
             .url(getFileUrl)

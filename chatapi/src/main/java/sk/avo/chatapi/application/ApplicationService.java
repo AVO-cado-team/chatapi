@@ -11,13 +11,9 @@ import sk.avo.chatapi.domain.model.filestorage.FileNotFoundException;
 import sk.avo.chatapi.domain.model.security.InvalidTokenException;
 import sk.avo.chatapi.domain.model.security.TokenType;
 import sk.avo.chatapi.domain.model.user.*;
-import sk.avo.chatapi.domain.service.ChatService;
-import sk.avo.chatapi.domain.service.FileStorageService;
-import sk.avo.chatapi.domain.service.JwtTokenService;
-import sk.avo.chatapi.domain.service.RoomService;
-import sk.avo.chatapi.domain.service.UserService;
+import sk.avo.chatapi.domain.service.*;
 import sk.avo.chatapi.domain.shared.Tuple;
-import sk.avo.chatapi.domain.model.security.TokenType;
+import sk.avo.chatapi.security.shared.UserRoles;
 
 import java.io.File;
 import java.security.Principal;
@@ -142,6 +138,7 @@ public class ApplicationService {
             sendChatCreateMessage(userId, chat.getId());
             sendUserJoinMessage(userId, chat.getId());
         } catch (UserIsNotInTheChatException e) {
+            // Fixme - how create chat can throw ChatNotFoundException?
             throw new RuntimeException(e); // Unreachable
         }
         return chat;
