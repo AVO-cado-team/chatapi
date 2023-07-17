@@ -6,30 +6,27 @@
             integrity="sha512-tL4PIUsPy+Rks1go4kQG8M8/ItpRMvKnbBjQm4d2DQnFwgcBYRRN00QdyQnWSCwNMsoY/MfJY8nHp2CzlNdtZA=="
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script>
-        const token = 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzOmFjY2VzcyIsImlzcyI6ImFwcCIsImlhdCI6MTY4ODkyNzExNCwiZXhwIjoxNjkxOTUxMTE0fQ.b2FOlUtRP-wFXBZZ2fa3MauRGITc3vMnXqTFpULibGGaZjUc1RNKI699MLFKlA8TTcKpBsOLb6I5mtvG_pk66Q'
-        const appPrefix = 'app';
-        const userChatId = '1';
-        const chatPathSend = (_userChatId = userChatId) => `/${appPrefix}/chat/${userChatId}/send`;
-        // const chatPathSubscribe = (_userChatId=userChatId) => `/chat/${_userChatId}`;
-        const url = 'ws://localhost:8080/room';
+        var token = '';
+        var appPrefix = 'app';
+        var userChatId = '1';
+        var headerTokenName = 'token';
+        var chatPathSend = (_userChatId = userChatId) => `/${appPrefix}/chat/${_userChatId}/send`;
+        var url = 'ws://localhost:8080/room';
+        var stompClient;
 
-        const stompClient = Stomp.client(url);
-        const headers = {
-            'xxx': token,
-        };
-        stompClient.connect(headers, handleConnection);
-        console.log("stompClient", stompClient);
 
         function sendMessage() {
             const messageInput = document.getElementById('message-input');
             const message = {
                 content: messageInput.value
             };
-            const messageChatId = document.getElementById('message-chat-id');
-            const chatId = messageChatId.value;
+            const messageChatIdInput = document.getElementById('message-chat-id');
+            const chatId = messageChatIdInput.value;
+            console.log("chatId", chatId);
             stompClient.send(chatPathSend(chatId), headers, JSON.stringify(message));
             console.log(`Try to send ${message} to ${chatPathSend(chatId)}`);
             messageInput.value = '';
+            messageChatIdInput.value = '';
         }
 
         function subscriberFactoryFunction(path) {
@@ -39,7 +36,7 @@
         }
 
         function handleConnection(message) {
-            console.dir(' @@@@@@@@@@@@@@@@@@@@@@@@@@2');
+            console.log(message);
             initSendMessage();
             initSubscribeToChat();
         }
@@ -55,7 +52,7 @@
             subscribeButton.disabled = false;
         }
 
-        function subscribeToChat() {
+        function subscribeToChat(options) {
             var subscribeInput = document.getElementById('subscribe-input');
             const chatId = subscribeInput.value;
             const chatPathSubscribe = `/chat/${chatId}`;
@@ -63,15 +60,36 @@
             console.log(`Try to subscribe to ${chatPathSubscribe} with subscription id ${subscription.id}`);
         }
 
+        function initSetToken() {
+            const tokenButton = document.getElementById('token-button');
+            tokenButton.addEventListener('click', setTokenAndConnect);
+        }
+        function setTokenAndConnect() {
+            const tokenInput = document.getElementById('token-input');
+            token = tokenInput.value;
+            const headers = {
+                [headerTokenName]: token,
+            };
+            stompClient = Stomp.client(url);
+            stompClient.connect(headers, handleConnection);
+            var stompClient2 = Stomp.client(url);
+            stompClient2.connect(headers, handleConnection);
+            console.log(`Try to connect to ${url} with token ${token}`);
+        }
+
+        setTimeout(() => {
+            initSetToken();
+        }, 1000);
+
     </script>
 </head>
 <body>
 <h1>Chat Client</h1>
 
 <div>
-    <label for="message-input">Message:</label>
+    <label for="message-input"> Message:</label>
     <input type="text" id="message-input" placeholder="message">
-    <input type="text" id="message-chat-id" placeholder="chatId">
+    <label for="message-chat-id"> Chat Id:</label><input type="text" id="message-chat-id" placeholder="chatId">
     <button id="send-button" disabled>Send</button>
 </div>
 <!--Write a -->
@@ -79,6 +97,12 @@
     <label for="subscribe-input">ChatId:</label>
     <input type="text" id="subscribe-input">
     <button id="subscribe-button" disabled>Subscribe</button>
+</div>
+
+<div style="float: right">
+    <label for="token-input">Token:</label>
+    <input type="text" id="token-input">
+    <button id="token-button">Set token</button>
 </div>
 </body>
 </html>

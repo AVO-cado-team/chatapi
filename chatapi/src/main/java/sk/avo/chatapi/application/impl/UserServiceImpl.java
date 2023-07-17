@@ -22,8 +22,6 @@ public class UserServiceImpl implements UserService {
   public UserServiceImpl(UserRepo userRepo, VerifyEmailRepo verifyEmailRepo) {
     this.userRepo = userRepo;
     this.verifyEmailRepo = verifyEmailRepo;
-
-    createTestUser(); // TODO: remove
   }
 
   @Transactional
@@ -92,24 +90,4 @@ public class UserServiceImpl implements UserService {
     return user.get();
   }
 
-
-  private void createTestUser() {
-    UserEntity user = new UserEntity();
-    user.setUsername("test");
-    user.setPasswordHash(passwordEncoder.encode("test"));
-    user.setEmail("test@test.test");
-    user.setIsVerified(true);
-    userRepo.save(user);
-    user.setIsVerified(true);
-    userRepo.save(user);
-
-    user = new UserEntity();
-    user.setUsername("string");
-    user.setPasswordHash(passwordEncoder.encode("string"));
-    user.setEmail("string@str.test");
-    user.setIsVerified(true);
-    userRepo.save(user);
-    user.setIsVerified(true);
-    userRepo.save(user);
-  }
 }

@@ -38,18 +38,10 @@ dependencies {
     implementation 'jakarta.persistence:jakarta.persistence-api:3.1.0'
     implementation 'org.eclipse.persistence:jakarta.persistence:2.2.3'
     implementation 'org.eclipse.persistence:jakarta.persistence:2.2.3'
+    testImplementation 'org.projectlombok:lombok:1.18.26'
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'org.postgresql:postgresql'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
-}
-
-test {
-    useJUnitPlatform()
-    testLogging.showStandardStreams = true
-    testLogging { events "FAILED", "SKIPPED", "PASSED" }
-    filter {
-        includeTestsMatching "sk.avo.chatapi.ChatapiApplicationTests"
-    }
 }
