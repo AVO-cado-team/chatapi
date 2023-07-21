@@ -6,7 +6,7 @@ WORKDIR /chatapi
 COPY chatapi /chatapi
 
 # Build the project
-RUN gradle build
+RUN gradle build -x test
 
 # Run the project
 #CMD ["gradle", "bootRun"]

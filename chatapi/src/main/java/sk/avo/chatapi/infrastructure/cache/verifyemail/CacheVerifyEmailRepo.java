@@ -1,15 +1,22 @@
 package sk.avo.chatapi.infrastructure.cache.verifyemail;
 
 import java.util.ArrayList;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 import sk.avo.chatapi.infrastructure.cache.verifyemail.models.Email;
 
 @Repository
 public class CacheVerifyEmailRepo implements sk.avo.chatapi.domain.repository.VerifyEmailRepo {
   private final ArrayList<Email> emailCache;
+  private final boolean testMode;
+  private final String testCode;
 
-  public CacheVerifyEmailRepo() {
+  public CacheVerifyEmailRepo(@Value ("${verifyemail.test-mode}") boolean testMode,
+                              @Value ("${verifyemail.test-code}") String testCode) {
     this.emailCache = new ArrayList<>();
+    this.testMode = testMode;
+    this.testCode = testCode;
   }
 
   private boolean isEmailInCache(String email) {
@@ -44,7 +51,8 @@ public class CacheVerifyEmailRepo implements sk.avo.chatapi.domain.repository.Ve
             .findFirst()
             .orElse(null);
     if (emailObj == null) return false;
-    emailObj.generateCode();
+    if (this.testMode) emailObj.setCode(this.testCode);
+    else emailObj.generateCode();
     return true;
   }
 

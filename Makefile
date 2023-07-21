@@ -21,7 +21,7 @@ APP_DOCKER_CONTAINER = chatapi
 APP_BUILD_INFO_PROPERTIES = ./chatapi/src/main/resources/build-info.properties
 DB_DOCKER_CONTAINER = postgres
 DB_EXTERNAL_PORT = 5433
-
+SIMPLE_FILE_STORAGE_DOCKER_CONTAINER = simple-file-storage
 
 .download-wait-for-it:
 	@echo "${INFO} Downloading wait-for-it.sh"
@@ -54,6 +54,10 @@ DB_EXTERNAL_PORT = 5433
 	@echo "${INFO} Starting database"
 	@docker-compose $(DOCKER_COMPOSE_ARGS) up -d $(DB_DOCKER_CONTAINER)
 
+.up-simple-file-storage:
+	@echo "${INFO} Starting simple file storage"
+	@docker-compose $(DOCKER_COMPOSE_ARGS) up -d $(SIMPLE_FILE_STORAGE_DOCKER_CONTAINER)
+
 .stop-db:
 	@echo "${INFO} Stopping database"
 	@docker-compose $(DOCKER_COMPOSE_ARGS) stop $(DB_DOCKER_CONTAINER)
@@ -75,11 +79,12 @@ up-app: .wait-for-db
 stop-app:
 	@echo "${INFO} Stopping app"
 	@docker-compose $(DOCKER_COMPOSE_ARGS) stop $(APP_DOCKER_CONTAINER)
+	@docker-compose $(DOCKER_COMPOSE_ARGS) stop $(TEST_APP_DOCKER_CONTAINER)
 
 logs-app:
 	@echo "${INFO} Showing app logs"
 	@docker-compose $(DOCKER_COMPOSE_ARGS) logs -f $(APP_DOCKER_CONTAINER)
 
-up: .exists-check .up-db build-app up-app logs-app
+up: .exists-check .up-db .up-simple-file-storage build-app up-app logs-app
 stop: stop-app .stop-db
-dev-up: .exists-check .up-db dev-build-app up-app logs-app
+dev-up: .exists-check .up-db .up-simple-file-storage dev-build-app up-app logs-app
