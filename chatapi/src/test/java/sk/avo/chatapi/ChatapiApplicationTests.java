@@ -1,13 +1,11 @@
 package sk.avo.chatapi;
 
-import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+import java.util.Set;
+
+
+@SpringBootTest(webEnvironment=SpringBootTest.WebEnvironment.RANDOM_PORT)
+public
 class ChatapiApplicationTests {
-
-//	@Test
-//	void contextLoads() {
-//	}
-
 }
